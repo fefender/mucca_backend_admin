@@ -15,8 +15,8 @@ class app():
 
     def __init__(self, app_name):
         """Class constructor."""
-        self.port = os.getenv("PORT")
-        self.host = os.getenv("HOST")
+        self.port = os.getenv("SERVER_PORT")
+        self.host = os.getenv("SERVER_HOST")
         logging.log_info(
             app_name,
             os.path.abspath(__file__),
