@@ -18,6 +18,7 @@
 """Server."""
 import os
 import sys
+import json
 from http.server import BaseHTTPRequestHandler
 from vendor.mucca_logging.mucca_logging import logging
 from src.routes.routes import router
@@ -38,23 +39,31 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Post."""
         logging.log_info(
-            "post",
+            "Server received POST request",
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
+        content_len = int(self.headers.get('Content-Length'))
+        post_body = self.rfile.read(content_len)
+        rout = router(self.__formatPath(self.path), post_body)
+        rout.rout()
+        # print(json.loads(post_body.decode()))
         return
 
     def do_GET(self):
         """Get."""
-        rout = router(self.path, "request")
-        rout.rout()
-        self.respond()
+        # self.respond()
         # self.send_response(200, 'OK')
         logging.log_info(
-            "get",
+            "Server received GET request",
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
+        content_len = int(self.headers.get('Content-Length'))
+        post_body = self.rfile.read(content_len)
+        rout = router(self.__formatPath(self.path), post_body)
+        rout.rout()
+        self.respond()
         return
 
     def handle_http(self, status, content_type):
@@ -76,3 +85,16 @@ class RequestHandler(BaseHTTPRequestHandler):
         content = self.handle_http(200, "text/html")
         self.wfile.write(content)
         return
+
+    def __formatPath(self, path):
+        """Format path."""
+        try:
+            my_path = path.split("/")
+            return my_path[1]
+        except Exception as e:
+            logging.log_error(
+                e,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None

@@ -35,67 +35,10 @@ class router():
         """init."""
         self.path = path
         self.request = request
-        self.paths = ['/login', '/logout']
-        self.actions = ['/read', '/create', '/update', '/delete']
-        self.environments = ['develop', 'production', 'stage']
-        pass
-
-    def __getRequestEnvironement(self):
-        """Get requested environment."""
-        try:
-            return json.loads(self.request.decode())["environment"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __getRequestUsername(self):
-        """Get username in request."""
-        try:
-            return json.loads(self.request.decode())["username"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __getAdminUsername(self):
-        """Get admin username."""
-        # partial_path = './app/config/'
-        partial_path = '../muccapp/mucca_install/app/config/'
-        file_name = '/config.json'
-        env = self.__getRequestEnvironement()
-        if env in self.environments:
-            path = partial_path + env + file_name
-            with open(path) as file:
-                config = json.load(file)
-                return config['superowner']
-        else:
-            logging.log_warning(
-                'Bad request',
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            return None
+        self.paths = ['authorization', 'authentication', 'logout']
+        self.actions = ['read', 'create', 'update', 'delete']
+        self.check_a = False
+        self.check_p = False
 
     def __getApiPort(self):
         """Get apigateway port."""
@@ -119,30 +62,27 @@ class router():
         """Rout method."""
         if self.path in self.paths:
             logging.log_info(
-                "{} is a valid path".format(self.path),
+                "{}, calling client".format(self.path),
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
-            host = "localhost"
-            port = self.__getApiPort()
-            data = {"username": "admin@admin.moe", "password": "password"}
-            my_client = client(host, port)
-            response = my_client.authenticate(data)
-            logging.log_info(
-                response,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-        if self.path in self.actions:
-            print("********ACTION")
+            new_client = client("localhost", self.__getApiPort(), self.request)
+            func = getattr(new_client, self.path)
+            func()
         else:
+            self.check_p = True
+        if self.path in self.actions:
+            logging.log_info(
+                "{}, calling controller".format(self.path),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+        else:
+            self.check_a = True
+        if self.check_a & self.check_p:
             logging.log_warning(
                 'Bad request',
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
             pass
-
-    def __login(self, request):
-        """Login."""
-        pass

@@ -27,99 +27,182 @@ import http.client
 class client():
     """http client class."""
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, request):
         """Init."""
-        self.host = host
-        self.port = self.__getApiPort()
-        self.client = http.client.HTTPConnection(self.host, self.port)
+        # self.host = host
+        # self.port = port
+        # self.port = self.__getApiPort()
+        # self.client = http.client.HTTPConnection(self.host, self.port)
+        self.client = http.client.HTTPConnection(host, port)
         self.auth_serv = os.getenv('AUTH_SERV')
         self.headers = {'Content-Type': 'application/json'}
+        self.request = request
+        self.environments = ['develop', 'production', 'stage']
 
-    def __getApiPort(self):
-        """Get apigateway port."""
-        # dir = ''./vendor/builder/netmucca/.portlist'
-        dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
-        with open(dir) as file:
-            port_list = file.read()
+    # def __getApiPort(self):
+    #     """Get apigateway port."""
+    #     # dir = ''./vendor/builder/netmucca/.portlist'
+    #     dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
+    #     with open(dir) as file:
+    #         port_list = file.read()
+    #         try:
+    #             search = re.search(r'apigateway:[0-9]\d{3,5}', port_list, re.I)
+    #             port = search.group().split(':', 5)
+    #             return port[1]
+    #         except Exception as e:
+    #             logging.log_error(
+    #                 e,
+    #                 os.path.abspath(__file__),
+    #                 sys._getframe().f_lineno
+    #                 )
+    #             return None
+
+    def __getRequestBody(self):
+        """Get requested environment."""
+        try:
+            return json.loads(self.request.decode())
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def __getToken(self):
+        try:
+            return json.loads(self.request.decode())["token"]
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def __getKey(self):
+        try:
+            return json.loads(self.request.decode())["key"]
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def __getRequestEnvironement(self):
+        """Get requested environment."""
+        try:
+            return json.loads(self.request.decode())["environment"]
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def __getRequestUsername(self):
+        """Get username in request."""
+        try:
+            return json.loads(self.request.decode())["username"]
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def __getAdminUsername(self):
+        """Get admin username."""
+        # partial_path = './app/config/'
+        partial_path = '../muccapp/mucca_install/app/config/'
+        file_name = '/config.json'
+        env = self.__getRequestEnvironement()
+        if env in self.environments:
+            path = partial_path + env + file_name
+            with open(path) as file:
+                config = json.load(file)
+                return config['superowner']
+        else:
+            logging.log_warning(
+                'Bad request',
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+
+    def authentication(self):
+        """Authenticate user."""
+        if self.__getAdminUsername() == self.__getRequestUsername():
+            method = "POST"
+            url = self.auth_serv + "/authentication"
+            # body = json.dumps(self.request)
             try:
-                search = re.search(r'apigateway:[0-9]\d{3,5}', port_list, re.I)
-                port = search.group().split(':', 5)
-                return port[1]
+                self.client.request(method, url, self.request, self.headers)
+                logging.log_info(
+                    "Authentication...{}".format(self.request),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                # response_obj = self.client.getresponse()
+                # msg = response_obj.read()
+                # status = response_obj.status
+                return self.client.getresponse().read()
             except Exception as e:
                 logging.log_error(
                     e,
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
-                return None
-
-    def __getToken(self, data):
-        try:
-            return json.loads(data.decode())["token"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
             return None
 
-    def __getKey(self, data):
-        try:
-            return json.loads(data.decode())["key"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def authenticate(self, data):
-        """Authenticate user."""
-        method = "POST"
-        url = self.auth_serv + "/authentication"
-        body = json.dumps(data)
-        try:
-            self.client.request(method, url, body, self.headers)
-            logging.log_info(
-                "Authentication...",
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            response = self.client.getresponse().read()
-            return self.authorize(response)
-        except Exception as e:
-            logging.log_error(
-                e,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            return None
-
-    def authorize(self, res):
+    def authorization(self):
         """Authorize user."""
         method = "GET"
         url = self.auth_serv + "/authorization"
         body = ""
         headers = {
             'Content-Type': 'application/json',
-            'token': self.__getToken(res),
-            'key': self.__getKey(res)
+            'token': self.__getToken(),
+            'key': self.__getKey()
             }
         try:
             self.client.request(method, url, body, headers)
@@ -138,20 +221,20 @@ class client():
             return None
         pass
 
-    def logout(self, res):
+    def logout(self):
         """Logout user."""
         method = "GET"
         url = self.auth_serv + "/logout"
         body = ""
         headers = {
             'Content-Type': 'application/json',
-            'token': self.__getToken(res),
-            'key': self.__getKey(res)
+            'token': self.__getToken(),
+            'key': self.__getKey()
             }
         try:
             self.client.request(method, url, body, headers)
             logging.log_info(
-                "Authorization...",
+                "Logging out...",
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
