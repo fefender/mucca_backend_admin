@@ -19,6 +19,7 @@
 import os
 import sys
 import json
+from bson.json_util import dumps
 from http.server import BaseHTTPRequestHandler
 from vendor.mucca_logging.mucca_logging import logging
 from src.routes.routes import router
@@ -46,7 +47,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('Content-Length'))
         post_body = self.rfile.read(content_len)
         rout = router(self.__formatPath(self.path), post_body)
-        rout.rout()
+        status, msg = rout.rout()
+        self.respond(status, msg)
         # print(json.loads(post_body.decode()))
         return
 
@@ -62,14 +64,14 @@ class RequestHandler(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('Content-Length'))
         post_body = self.rfile.read(content_len)
         rout = router(self.__formatPath(self.path), post_body)
-        rout.rout()
+        status, msg = rout.rout()
         self.respond()
         return
 
     def handle_http(self, status, content_type):
         """Handler."""
         self.send_response(status)
-        self.send_header("Content-type", content_type)
+        self.send_header("Content-type", "application/json;charset=utf-8")
         self.end_headers()
         logging.log_info(
             "status {} content {}".format(status, content_type),
@@ -80,11 +82,17 @@ class RequestHandler(BaseHTTPRequestHandler):
         # route_content = routes[self.path]
         return bytes("Suca", 'UTF-8')
 
-    def respond(self):
+    def respond(self, status, msg):
         """Response."""
-        content = self.handle_http(200, "text/html")
-        self.wfile.write(content)
-        return
+        self.send_response(status)
+        self.send_header("Content-type", "application/json;charset=utf-8")
+        self.end_headers()
+        # content = self.handle_http(200, "text/html")
+        res = json.loads(msg)
+        response = dumps(res).encode()
+        print("****++****")
+        print(json.loads(msg))
+        return self.wfile.write(response)
 
     def __formatPath(self, path):
         """Format path."""

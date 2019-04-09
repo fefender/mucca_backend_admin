@@ -35,7 +35,7 @@ class client():
         # self.client = http.client.HTTPConnection(self.host, self.port)
         self.client = http.client.HTTPConnection(host, port)
         self.auth_serv = os.getenv('AUTH_SERV')
-        self.headers = {'Content-Type': 'application/json'}
+        self.headers = {"Content-Type": "application/json;charset=utf-8"}
         self.request = request
         self.environments = ['develop', 'production', 'stage']
 
@@ -182,10 +182,10 @@ class client():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
-                # response_obj = self.client.getresponse()
-                # msg = response_obj.read()
-                # status = response_obj.status
-                return self.client.getresponse().read()
+                response_obj = self.client.getresponse()
+                msg = response_obj.read().decode('utf-8')
+                status = response_obj.status
+                return status, msg
             except Exception as e:
                 logging.log_error(
                     e,
@@ -211,7 +211,10 @@ class client():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
-            return self.client.getresponse().read()
+            response_obj = self.client.getresponse()
+            msg = response_obj.read().decode('utf-8')
+            status = response_obj.status
+            return status, msg
         except Exception as e:
             logging.log_error(
                 e,
@@ -238,7 +241,10 @@ class client():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
-            return self.client.getresponse().read()
+            response_obj = self.client.getresponse()
+            msg = response_obj.read().decode('utf-8')
+            status = response_obj.status
+            return status, msg
         except Exception as e:
             logging.log_error(
                 e,

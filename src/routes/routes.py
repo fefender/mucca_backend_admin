@@ -68,7 +68,7 @@ class router():
             )
             new_client = client("localhost", self.__getApiPort(), self.request)
             func = getattr(new_client, self.path)
-            func()
+            return func()
         else:
             self.check_p = True
         if self.path in self.actions:
