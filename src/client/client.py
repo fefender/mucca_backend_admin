@@ -27,115 +27,40 @@ import http.client
 class client():
     """http client class."""
 
-    def __init__(self, host, port, request):
+    def __init__(self, header, body):
         """Init."""
-        # self.host = host
-        # self.port = port
-        # self.port = self.__getApiPort()
-        # self.client = http.client.HTTPConnection(self.host, self.port)
-        self.client = http.client.HTTPConnection(host, port)
+        self.host = os.getenv('CLIENT_HOST')
+        self.port = self.__getApiPort()
+        self.client = http.client.HTTPConnection(self.host, self.port)
         self.auth_serv = os.getenv('AUTH_SERV')
         self.headers = {"Content-Type": "application/json;charset=utf-8"}
-        self.request = request
+        self.request = body
+        self.req_header = header
         self.environments = ['develop', 'production', 'stage']
 
-    # def __getApiPort(self):
-    #     """Get apigateway port."""
-    #     # dir = ''./vendor/builder/netmucca/.portlist'
-    #     dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
-    #     with open(dir) as file:
-    #         port_list = file.read()
-    #         try:
-    #             search = re.search(r'apigateway:[0-9]\d{3,5}', port_list, re.I)
-    #             port = search.group().split(':', 5)
-    #             return port[1]
-    #         except Exception as e:
-    #             logging.log_error(
-    #                 e,
-    #                 os.path.abspath(__file__),
-    #                 sys._getframe().f_lineno
-    #                 )
-    #             return None
-
-    def __getRequestBody(self):
-        """Get requested environment."""
-        try:
-            return json.loads(self.request.decode())
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __getToken(self):
-        try:
-            return json.loads(self.request.decode())["token"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __getKey(self):
-        try:
-            return json.loads(self.request.decode())["key"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
+    def __getApiPort(self):
+        """Get apigateway port."""
+        # dir = ''./vendor/builder/netmucca/.portlist'
+        dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
+        with open(dir) as file:
+            port_list = file.read()
+            try:
+                search = re.search(r'apigateway:[0-9]\d{3,5}', port_list, re.I)
+                port = search.group().split(':', 5)
+                return port[1]
+            except Exception as e:
+                logging.log_error(
+                    e,
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                return None
 
     def __getRequestEnvironement(self):
         """Get requested environment."""
         try:
-            return json.loads(self.request.decode())["environment"]
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __getRequestUsername(self):
-        """Get username in request."""
-        try:
-            return json.loads(self.request.decode())["username"]
-        except json.decoder.JSONDecodeError as emsg:
+            return self.request["environment"]
+        except Exception as emsg:
             logging.log_error(
                 emsg,
                 os.path.abspath(__file__),
@@ -171,14 +96,21 @@ class client():
 
     def authentication(self):
         """Authenticate user."""
-        if self.__getAdminUsername() == self.__getRequestUsername():
+        if self.__getAdminUsername() == self.request["username"]:
             method = "POST"
             url = self.auth_serv + "/authentication"
-            # body = json.dumps(self.request)
+            body = {
+                "username": self.request['username'],
+                "password": self.request['password']
+                }
             try:
-                self.client.request(method, url, self.request, self.headers)
+                self.client.request(
+                    method,
+                    url,
+                    json.dumps(body),
+                    self.headers)
                 logging.log_info(
-                    "Authentication...{}".format(self.request),
+                    "Authentication...",
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
@@ -201,8 +133,8 @@ class client():
         body = ""
         headers = {
             'Content-Type': 'application/json',
-            'token': self.__getToken(),
-            'key': self.__getKey()
+            'token': self.req_header['token'],
+            'key': self.req_header['key']
             }
         try:
             self.client.request(method, url, body, headers)
@@ -231,8 +163,8 @@ class client():
         body = ""
         headers = {
             'Content-Type': 'application/json',
-            'token': self.__getToken(),
-            'key': self.__getKey()
+            'token': self.req_header['token'],
+            'key': self.req_header['key']
             }
         try:
             self.client.request(method, url, body, headers)

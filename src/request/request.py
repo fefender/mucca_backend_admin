@@ -1,0 +1,102 @@
+# Copyright 2019 Federica Cricchio
+# fefender@gmail.com
+#
+# This file is part of mucca_backend_admin.
+#
+# mucca_backend_admin is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# mucca_backend_admin is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with mucca_backend_admin.  If not, see <http://www.gnu.org/licenses/>.
+"""Request class."""
+import os
+import sys
+import json
+from vendor.mucca_logging.mucca_logging import logging
+
+
+class request():
+    """Request."""
+
+    def __init__(self, request):
+        """Init."""
+        self.method = request.command
+        self.uri = request.path
+        self.headers = request.headers
+        self.content_len = int(self.headers.get('Content-Length'))
+        self.body = request.rfile.read(self.content_len)
+
+    def getMethod(self):
+        """getMethod."""
+        return self.method
+
+    def setMethod(self, method):
+        """getMethod."""
+        self.method = method
+        return self.method
+
+    def getUri(self):
+        """getMethod."""
+        path = self.uri.split('/')
+        return path[1]
+
+    def setUri(self, uri):
+        """getMethod."""
+        self.uri = uri
+        return self.uri
+
+    def getHeaders(self):
+        """getMethod."""
+        try:
+            return self.headers
+        except Exception as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        return self.headers
+
+    def setHeaders(self, headers):
+        """getMethod."""
+        self.headers = headers
+        return self.headers
+
+    def getBody(self):
+        """getMethod."""
+        try:
+            return json.loads(self.body.decode())
+        except json.decoder.JSONDecodeError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+        except KeyError as emsg:
+            logging.log_error(
+                emsg,
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return None
+
+    def setBody(self, body):
+        """getMethod."""
+        self.body = body
+        return self.body

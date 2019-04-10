@@ -22,8 +22,6 @@
 #     }
 import os
 import sys
-import json
-import re
 from vendor.mucca_logging.mucca_logging import logging
 from src.client.client import client
 
@@ -31,43 +29,25 @@ from src.client.client import client
 class router():
     """Class router."""
 
-    def __init__(self, path, request):
+    def __init__(self, request_instance):
         """init."""
-        self.path = path
-        self.request = request
+        # self.path = path
+        self.request = request_instance
         self.paths = ['authorization', 'authentication', 'logout']
         self.actions = ['read', 'create', 'update', 'delete']
         self.check_a = False
         self.check_p = False
 
-    def __getApiPort(self):
-        """Get apigateway port."""
-        # dir = ''./vendor/builder/netmucca/.portlist'
-        dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
-        with open(dir) as file:
-            port_list = file.read()
-            try:
-                search = re.search(r'apigateway:[0-9]\d{3,5}', port_list, re.I)
-                port = search.group().split(':', 5)
-                return int(port[1])
-            except Exception as e:
-                logging.log_error(
-                    e,
-                    os.path.abspath(__file__),
-                    sys._getframe().f_lineno
-                    )
-                return None
-
     def rout(self):
         """Rout method."""
-        if self.path in self.paths:
+        if self.request.getUri() in self.paths:
             logging.log_info(
-                "{}, calling client".format(self.path),
+                "calling client",
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
-            new_client = client("localhost", self.__getApiPort(), self.request)
-            func = getattr(new_client, self.path)
+            new_client = client(self.request.getHeaders(), self.request.getBody())
+            func = getattr(new_client, self.request.getUri())
             return func()
         else:
             self.check_p = True

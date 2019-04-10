@@ -23,19 +23,11 @@ from bson.json_util import dumps
 from http.server import BaseHTTPRequestHandler
 from vendor.mucca_logging.mucca_logging import logging
 from src.routes.routes import router
+from src.request.request import request
 
 
 class RequestHandler(BaseHTTPRequestHandler):
     """Extend base http servers."""
-
-    def do_HEAD(self):
-        """head."""
-        logging.log_info(
-            "head",
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
-        return
 
     def do_POST(self):
         """Post."""
@@ -44,65 +36,47 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
-        content_len = int(self.headers.get('Content-Length'))
-        post_body = self.rfile.read(content_len)
-        rout = router(self.__formatPath(self.path), post_body)
-        status, msg = rout.rout()
+        new_request = request(self)
+        new_router = router(new_request)
+        status, msg = new_router.rout()
         self.respond(status, msg)
-        # print(json.loads(post_body.decode()))
         return
 
     def do_GET(self):
         """Get."""
-        # self.respond()
-        # self.send_response(200, 'OK')
         logging.log_info(
             "Server received GET request",
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
-        content_len = int(self.headers.get('Content-Length'))
-        post_body = self.rfile.read(content_len)
-        rout = router(self.__formatPath(self.path), post_body)
-        status, msg = rout.rout()
-        self.respond()
+        new_request = request(self)
+        new_router = router(new_request)
+        status, msg = new_router.rout()
+        self.respond(status, msg)
         return
-
-    def handle_http(self, status, content_type):
-        """Handler."""
-        self.send_response(status)
-        self.send_header("Content-type", "application/json;charset=utf-8")
-        self.end_headers()
-        logging.log_info(
-            "status {} content {}".format(status, content_type),
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
-        # print(self.path)
-        # route_content = routes[self.path]
-        return bytes("Suca", 'UTF-8')
 
     def respond(self, status, msg):
         """Response."""
         self.send_response(status)
         self.send_header("Content-type", "application/json;charset=utf-8")
         self.end_headers()
-        # content = self.handle_http(200, "text/html")
         res = json.loads(msg)
         response = dumps(res).encode()
-        print("****++****")
-        print(json.loads(msg))
+        logging.log_info(
+            "Respond with status {}".format(status),
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+        )
         return self.wfile.write(response)
 
-    def __formatPath(self, path):
-        """Format path."""
-        try:
-            my_path = path.split("/")
-            return my_path[1]
-        except Exception as e:
-            logging.log_error(
-                e,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
+    # def handle_http(self, status, content_type):
+    #     """Handler."""
+    #     self.send_response(status)
+    #     self.send_header("Content-type", "application/json;charset=utf-8")
+    #     self.end_headers()
+    #     logging.log_info(
+    #         "status {} content {}".format(status, content_type),
+    #         os.path.abspath(__file__),
+    #         sys._getframe().f_lineno
+    #     )
+    #     return bytes("Suca", 'UTF-8')
