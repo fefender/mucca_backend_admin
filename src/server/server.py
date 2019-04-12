@@ -29,6 +29,20 @@ from src.request.request import request
 class RequestHandler(BaseHTTPRequestHandler):
     """Extend base http servers."""
 
+    def do_OPTIONS(self):
+        """Option."""
+        logging.log_info(
+            "Option",
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+        )
+        self.send_response(200, "ok")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header("Access-Control-Allow-Headers", "*")
+        self.end_headers()
+
     def do_POST(self):
         """Post."""
         logging.log_info(
@@ -36,6 +50,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
+        # self.processRequest()
         new_request = request(self)
         new_router = router(new_request)
         status, msg = new_router.rout()
@@ -49,6 +64,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
+        # sself.processRequest()
         new_request = request(self)
         new_router = router(new_request)
         status, msg = new_router.rout()
@@ -59,6 +75,10 @@ class RequestHandler(BaseHTTPRequestHandler):
         """Response."""
         self.send_response(status)
         self.send_header("Content-type", "application/json;charset=utf-8")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
         res = json.loads(msg)
         response = dumps(res).encode()

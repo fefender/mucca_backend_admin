@@ -31,8 +31,16 @@ class request():
         self.uri = request.path
         self.version = self.getVersion()
         self.headers = request.headers
-        self.content_len = int(self.headers.get('Content-Length'))
+        self.content_len = self.__checkContentLength()
+        # self.content_len = int(self.headers.get('Content-Length'))
         self.body = request.rfile.read(self.content_len)
+
+    def __checkContentLength(self):
+        """Check if content_len exists."""
+        if self.headers.get('Content-Length'):
+            return int(self.headers.get('Content-Length'))
+        else:
+            return 0
 
     def getMethod(self):
         """getMethod."""
@@ -90,22 +98,24 @@ class request():
 
     def getBody(self):
         """getMethod."""
-        try:
-            return json.loads(self.body.decode())
-        except json.decoder.JSONDecodeError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
+        if self.content_len > 0:
+            try:
+                return json.loads(self.body.decode())
+            except json.decoder.JSONDecodeError as emsg:
+                logging.log_error(
+                    emsg,
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            except KeyError as emsg:
+                logging.log_error(
+                    emsg,
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            return ""
 
     def setBody(self, body):
         """getMethod."""
