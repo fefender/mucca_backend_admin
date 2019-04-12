@@ -40,29 +40,39 @@ class router():
 
     def rout(self):
         """Rout method."""
-        if self.request.getUri() in self.paths:
-            logging.log_info(
-                "calling client",
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            new_client = client(self.request.getHeaders(), self.request.getBody())
-            func = getattr(new_client, self.request.getUri())
-            return func()
+        if self.request.getVersion() == os.getenv('SERVICE_VERSION'):
+            if self.request.getUri() in self.paths:
+                logging.log_info(
+                    "calling client",
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                new_client = client(
+                    self.request.getHeaders(),
+                    self.request.getBody())
+                func = getattr(new_client, self.request.getUri())
+                return func()
+            else:
+                self.check_p = True
+            if self.request.getUri() in self.actions:
+                logging.log_info(
+                    "{}, calling controller".format(self.path),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+            else:
+                self.check_a = True
+            if self.check_a & self.check_p:
+                logging.log_warning(
+                    'Bad request',
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                return None
         else:
-            self.check_p = True
-        if self.path in self.actions:
-            logging.log_info(
-                "{}, calling controller".format(self.path),
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-        else:
-            self.check_a = True
-        if self.check_a & self.check_p:
             logging.log_warning(
                 'Bad request',
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
-            pass
+            return None

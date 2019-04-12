@@ -29,6 +29,7 @@ class request():
         """Init."""
         self.method = request.command
         self.uri = request.path
+        self.version = self.getVersion()
         self.headers = request.headers
         self.content_len = int(self.headers.get('Content-Length'))
         self.body = request.rfile.read(self.content_len)
@@ -42,10 +43,20 @@ class request():
         self.method = method
         return self.method
 
-    def getUri(self):
+    def getVersion(self):
         """getMethod."""
         path = self.uri.split('/')
         return path[1]
+
+    def setVersion(self, version):
+        """getMethod."""
+        self.version = version
+        return self.version
+
+    def getUri(self):
+        """getMethod."""
+        path = self.uri.split('/')
+        return path[2]
 
     def setUri(self, uri):
         """getMethod."""
