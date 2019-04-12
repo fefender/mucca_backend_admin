@@ -58,31 +58,32 @@ class response():
     def __okRes(self):
         """200."""
         if self.message.Length() > 1:
-            return self.message
+            return self.status, self.message
         else:
             res = {'message': 'success'}
-            return str(res)
+            return self.status, str(res)
 
     def __createdRes(self):
         """201."""
-        pass
+        res = {'message': 'created'}
+        return self.status, str(res)
 
     def __badRequestRes(self):
         """400."""
         res = {'message': 'unauthorized'}
-        return str(res)
+        return self.status, str(res)
 
     def __unauthorizedRes(self):
         """401."""
         res = {'message': 'bad request'}
-        return str(res)
+        return self.status, str(res)
 
     def __notFoundRes(self):
         """404."""
         res = {'message': 'not found'}
-        return str(res)
+        return self.status, str(res)
 
     def __errorRes(self):
         """500."""
         res = {'message': 'internal server error'}
-        return str(res)
+        return self.status, str(res)
