@@ -124,7 +124,11 @@ class client():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
-            return None
+        else:
+            # Sistemare Risposte
+            status = 400
+            msg = "Bad request"
+            return status, msg
 
     def authorization(self):
         """Authorize user."""
