@@ -71,6 +71,19 @@ class request():
         self.uri = uri
         return self.uri
 
+    def getQuery(self):
+        """getMethod."""
+        path = self.uri.split('/')
+        if len(path) > 3:
+            return path[3]
+        else:
+            return None
+
+    def setQuery(self, uri):
+        """getMethod."""
+        self.uri = uri
+        return self.uri
+
     def getHeaders(self):
         """getMethod."""
         try:

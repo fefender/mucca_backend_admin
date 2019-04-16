@@ -24,6 +24,7 @@ import os
 import sys
 from vendor.mucca_logging.mucca_logging import logging
 from src.client.client import client
+from src.repository.repository import repository
 
 
 class router():
@@ -56,10 +57,13 @@ class router():
                 self.check_p = True
             if self.request.getUri() in self.actions:
                 logging.log_info(
-                    "{}, calling controller".format(self.path),
+                    "{}, calling repository",
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
+                new_repository = repository()
+                func = getattr(new_repository, self.request.getUri())
+                return func(self.request.getQuery(), self.request.getBody())
             else:
                 self.check_a = True
             if self.check_a & self.check_p:
