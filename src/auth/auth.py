@@ -20,6 +20,7 @@ import os
 import sys
 import re
 import json
+import datetime
 from vendor.mucca_logging.mucca_logging import logging
 from src.session.repository.repository import repository
 import http.client
@@ -97,10 +98,40 @@ class auth():
                 )
             return None
 
-    # def __verifyAuthorization(self):
-    #     """Verify session."""
-    #     self.req_header
-    #     pass
+    def __sessionAuth(self, data):
+        """Verify session."""
+        user_info = self.session_instance.read(data)
+        if user_info is not None & self.__sessionTimeCheck(user_info['last_update']) is False:
+            logging.log_warning(
+                'Session Expired',
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            update = {
+                "token": data['token'],
+                "key": data['key'],
+                "status": "expired",
+                "last_update": datetime.datetime.utcnow()}
+            up_res = self.session_instance.update(update)
+            return "status 401, msg unauthorized"
+        else:
+            logging.log_info(
+                'Session Valid',
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            update = {
+                "token": data['token'],
+                "key": data['key'],
+                "last_update": datetime.datetime.utcnow()}
+            up_res = self.session_instance.update(update)
+        pass
+
+    def __sessionTimeCheck(self, time):
+        """Check if session is stil valid."""
+        if time is "più di tot":
+            return False
+        return True
 
     def authentication(self):
         """Authenticate user."""
@@ -170,6 +201,11 @@ class auth():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
+            data = {
+                'token': self.req_header['token'],
+                'key': self.req_header['key']
+                }
+            s_res = self.__sessionAuth(data)
             return None
         pass
 

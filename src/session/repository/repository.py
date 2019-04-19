@@ -146,7 +146,7 @@ class repository():
             return result
         except Exception as emsg:
             logging.log_error(
-                'Updating fail. Bad request {}'.format(emsg),
+                'Updating fail. {}'.format(emsg),
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
