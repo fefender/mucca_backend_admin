@@ -21,17 +21,20 @@ import sys
 import re
 import json
 from vendor.mucca_logging.mucca_logging import logging
+from src.session.repository.repository import repository
 import http.client
 
 
-class client():
+class auth():
     """http client class."""
 
-    def __init__(self, header, body):
+    def __init__(self, header, body, mongo_instance):
         """Init."""
         self.host = os.getenv('CLIENT_HOST')
         self.port = self.__getApiPort()
         self.client = http.client.HTTPConnection(self.host, self.port)
+        self.mongo_connection_instance = mongo_instance
+        self.session_instance = repository(self.mongo_connection_instance)
         self.auth_serv = os.getenv('AUTH_SERV')
         self.headers = {"Content-Type": "application/json;charset=utf-8"}
         self.request = body
@@ -94,6 +97,11 @@ class client():
                 )
             return None
 
+    # def __verifyAuthorization(self):
+    #     """Verify session."""
+    #     self.req_header
+    #     pass
+
     def authentication(self):
         """Authenticate user."""
         if self.__getAdminUsername() == self.request["username"]:
@@ -117,13 +125,18 @@ class client():
                 response_obj = self.client.getresponse()
                 msg = response_obj.read().decode('utf-8')
                 status = response_obj.status
-                return status, msg
+                # return status, msg
             except Exception as e:
                 logging.log_error(
                     e,
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
+            # [2019-04-19 18:30:17] ERROR AdminBackEnd /home/fefe/Develop/mucca-project/mucca_backend_admin/src/auth/auth.py:133 "Remote end closed connection without response"
+            if status == 201:
+                s_resp = self.session_instance.create(json.loads(msg))
+                print(s_resp)
+            return status, msg
         else:
             # Sistemare Risposte
             status = 400

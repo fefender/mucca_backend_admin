@@ -25,6 +25,8 @@ import os
 import sys
 from src.server.server import RequestHandler
 from vendor.mucca_logging.mucca_logging import logging
+from src.session.boot.boot import boot
+# from src.mongo_connection.mongo_connection import mongo_connection
 
 
 class app():
@@ -43,6 +45,7 @@ class app():
 
     def run(self):
         """Run."""
+        boot.init()
         server_address = (self.host, int(self.port))
         try:
             httpd = socketserver.TCPServer(

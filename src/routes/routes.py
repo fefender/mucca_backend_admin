@@ -23,35 +23,39 @@
 import os
 import sys
 from vendor.mucca_logging.mucca_logging import logging
-from src.client.client import client
+from src.auth.auth import auth
 from src.repository.repository import repository
 
 
 class router():
     """Class router."""
 
-    def __init__(self, request_instance):
+    def __init__(self, request_instance, mongo_instance):
         """init."""
         # self.path = path
         self.request = request_instance
+        self.mongo_connection_instance = mongo_instance
         self.paths = ['authorization', 'authentication', 'logout']
         self.actions = ['read', 'create', 'update', 'delete']
+        self.triggers = ['start', 'stop', 'run']
         self.check_a = False
         self.check_p = False
+        self.check_t = False
 
     def rout(self):
         """Rout method."""
         if self.request.getVersion() == os.getenv('SERVICE_VERSION'):
             if self.request.getUri() in self.paths:
                 logging.log_info(
-                    "calling client",
+                    "calling Auth",
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
-                new_client = client(
+                new_auth = auth(
                     self.request.getHeaders(),
-                    self.request.getBody())
-                func = getattr(new_client, self.request.getUri())
+                    self.request.getBody(),
+                    self.mongo_connection_instance)
+                func = getattr(new_auth, self.request.getUri())
                 return func()
             else:
                 self.check_p = True
