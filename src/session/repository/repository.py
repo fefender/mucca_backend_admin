@@ -19,6 +19,7 @@
 import os
 import sys
 import datetime
+from bson.objectid import ObjectId
 from vendor.mucca_logging.mucca_logging import logging
 from src.session.mongo_connection.mongo_connection import mongo_connection
 
@@ -108,47 +109,55 @@ class repository():
         count = result.count()
         if count is 0:
             return None
-        response = {"username": result.distinct("username"),
-                    "token": result.distinct("token"),
-                    "key": result.distinct("key"),
-                    "status": result.distinct("status"),
-                    "last_update": result.distinct("last_update")}
+        username = result.distinct("username")
+        id = result.distinct("_id")
+        token = result.distinct("token")
+        key = result.distinct("key")
+        status = result.distinct("status")
+        last_update = result.distinct("last_update")
+        response = {"username": username[0],
+                    "_id": id[0],
+                    "token": token[0],
+                    "key": key[0],
+                    "status": status[0],
+                    "last_update": last_update[0]}
         return response
 
     def update(self, data):
         """Update."""
         res = self.read(data)
-        status = res['status']
-        last_update = datetime.datetime.utcnow()
-        token = res['token']
-        key = res['key']
-        username = res['username']
-        id = res['_id']
-        if 'status' in data:
-            status = data['status']
-        if 'token' in data:
-            token = data['token']
-        if 'key' in data:
-            key = data['key']
-        if 'username' in data:
-            username = data['username']
-        filter = {"_id": id}
-        request = {
-            "username": username,
-            "token": token,
-            "key": key,
-            "status": status,
-            "last_update": last_update
-            }
-        update = {"$set": request}
-        try:
-            result = self.collection.update_one(filter, update)
-            return result
-        except Exception as emsg:
-            logging.log_error(
-                'Updating fail. {}'.format(emsg),
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
+        if res is not None:
+            status = res['status']
+            last_update = datetime.datetime.utcnow()
+            token = res['token']
+            key = res['key']
+            username = res['username']
+            id = res['_id']
+            if 'status' in data:
+                status = data['status']
+            if 'token' in data:
+                token = data['token']
+            if 'key' in data:
+                key = data['key']
+            if 'username' in data:
+                username = data['username']
+            filter = {"_id": ObjectId(id)}
+            request = {
+                "username": username,
+                "token": token,
+                "key": key,
+                "status": status,
+                "last_update": last_update
+                }
+            update = {"$set": request}
+            try:
+                result = self.collection.update_one(filter, update)
+                return result
+            except Exception as emsg:
+                logging.log_error(
+                    'Updating fail. {}'.format(emsg),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
         pass

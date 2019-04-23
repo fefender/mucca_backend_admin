@@ -21,6 +21,7 @@ import sys
 import re
 import json
 import datetime
+from datetime import timedelta
 from vendor.mucca_logging.mucca_logging import logging
 from src.session.repository.repository import repository
 import http.client
@@ -101,37 +102,57 @@ class auth():
     def __sessionAuth(self, data):
         """Verify session."""
         user_info = self.session_instance.read(data)
-        if user_info is not None & self.__sessionTimeCheck(user_info['last_update']) is False:
-            logging.log_warning(
-                'Session Expired',
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            update = {
-                "token": data['token'],
-                "key": data['key'],
-                "status": "expired",
-                "last_update": datetime.datetime.utcnow()}
-            up_res = self.session_instance.update(update)
-            return "status 401, msg unauthorized"
-        else:
-            logging.log_info(
-                'Session Valid',
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            update = {
-                "token": data['token'],
-                "key": data['key'],
-                "last_update": datetime.datetime.utcnow()}
-            up_res = self.session_instance.update(update)
-        pass
+        if user_info is not None:
+            if self.__sessionTimeCheck(user_info['last_update']) is True:
+                logging.log_info(
+                    'Session Valid',
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                try:
+                    up_res = self.session_instance.update(data)
+                except Exception as e:
+                    logging.log_error(
+                        e,
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                status = 200
+                msg = "ok"
+                return status, msg
+            else:
+                logging.log_warning(
+                    'Session Expired',
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                update = {
+                    "token": data['token'],
+                    "key": data['key'],
+                    "status": "expired"}
+                try:
+                    up_res = self.session_instance.update(update)
+                except Exception as e:
+                    logging.log_error(
+                        e,
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                status = 401
+                msg = "Anauthorized User"
+                return status, msg
+        status = "not found"
+        msg = "not found"
+        return status, msg
 
     def __sessionTimeCheck(self, time):
         """Check if session is stil valid."""
-        if time is "più di tot":
-            return False
-        return True
+        now = datetime.datetime.utcnow()
+        limit = os.getenv('SESSION_TTL_H')
+        delta = timedelta(hours=-int(limit))
+        if time > now + delta:
+            return True
+        return False
 
     def authentication(self):
         """Authenticate user."""
@@ -163,15 +184,13 @@ class auth():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
-            # [2019-04-19 18:30:17] ERROR AdminBackEnd /home/fefe/Develop/mucca-project/mucca_backend_admin/src/auth/auth.py:133 "Remote end closed connection without response"
             if status == 201:
                 s_resp = self.session_instance.create(json.loads(msg))
-                print(s_resp)
             return status, msg
         else:
             # Sistemare Risposte
-            status = 400
-            msg = "Bad request"
+            status = 401
+            msg = "Anauthorized User"
             return status, msg
 
     def authorization(self):
@@ -194,6 +213,12 @@ class auth():
             response_obj = self.client.getresponse()
             msg = response_obj.read().decode('utf-8')
             status = response_obj.status
+            if status == 200:
+                data = {
+                    'token': self.req_header['token'],
+                    'key': self.req_header['key']
+                    }
+                s_res = self.session_instance.update(data)
             return status, msg
         except Exception as e:
             logging.log_error(
@@ -201,12 +226,15 @@ class auth():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
+        # [2019-04-19 18:30:17]
+        #  ERROR AdminBackEnd /home/fefe/Develop/mucca-project
+        # /mucca_backend_admin/src/auth/auth.py:133
+        # "Remote end closed connection without response"
             data = {
                 'token': self.req_header['token'],
                 'key': self.req_header['key']
                 }
-            s_res = self.__sessionAuth(data)
-            return None
+            return self.__sessionAuth(data)
         pass
 
     def logout(self):
@@ -229,6 +257,9 @@ class auth():
             response_obj = self.client.getresponse()
             msg = response_obj.read().decode('utf-8')
             status = response_obj.status
+            if status == 200:
+                data = {"status": "expired"}
+                s_res = self.session_instance.update(json.loads(data))
             return status, msg
         except Exception as e:
             logging.log_error(
@@ -236,5 +267,7 @@ class auth():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
+            data = {"status": "expired"}
+            s_res = self.session_instance.update(json.loads(data))
             return None
         pass

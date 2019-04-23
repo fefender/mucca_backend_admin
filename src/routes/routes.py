@@ -61,7 +61,7 @@ class router():
                 self.check_p = True
             if self.request.getUri() in self.actions:
                 logging.log_info(
-                    "{}, calling repository",
+                    " calling repository",
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
@@ -70,7 +70,16 @@ class router():
                 return func(self.request.getQuery(), self.request.getBody())
             else:
                 self.check_a = True
-            if self.check_a & self.check_p:
+            if self.request.getUri() in self.triggers:
+                if self.request.getUri() in self.actions:
+                    logging.log_info(
+                        " calling triggers",
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                    )
+                else:
+                    self.check_t = True
+            if self.check_a & self.check_p & self.check_t:
                 logging.log_warning(
                     'Bad request',
                     os.path.abspath(__file__),
