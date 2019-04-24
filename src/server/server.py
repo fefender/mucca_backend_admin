@@ -34,14 +34,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         """Init."""
         self.client_address = os.getenv("MONGO_CLIENT")
         self.mongo_connection_instance = mongo_connection(self.client_address)
-        print(self.mongo_connection_instance)
         BaseHTTPRequestHandler.__init__(self, request, client_address, server)
-
-    # def __startMongoConnection(self):
-    #     """Start Mongo connection."""
-    #     client_address = os.getenv("MONGO_CLIENT")
-    #     mongo_connection_instance = mongo_connection(client_address)
-    #     return mongo_connection_instance
 
     def do_OPTIONS(self):
         """Option."""
@@ -60,11 +53,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Post."""
         logging.log_info(
-            "Server received POST request",
+            "New request",
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
-        # self.processRequest()
         new_request = request(self)
         new_router = router(new_request, self.mongo_connection_instance)
         status, msg = new_router.rout()
@@ -74,11 +66,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Get."""
         logging.log_info(
-            "Server received GET request",
+            "New request",
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
-        # sself.processRequest()
         new_request = request(self)
         new_router = router(new_request, self.mongo_connection_instance)
         status, msg = new_router.rout()
@@ -89,19 +80,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         """Response."""
         self.send_response(status)
         self.send_header("Content-type", "application/json;charset=utf-8")
-        # self.send_header("Cache-Control", "no-cache")
-        # self.send_header("Access-Control-Allow-Origin", "*")
-        # self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        # self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
-        res = json.loads(msg)
-        response = dumps(res).encode()
-        logging.log_info(
-            "Respond with status {}".format(status),
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
-        return self.wfile.write(response)
+        return self.wfile.write(msg.encode())
 
     # def handle_http(self, status, content_type):
     #     """Handler."""

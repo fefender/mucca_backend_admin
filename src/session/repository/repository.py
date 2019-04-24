@@ -56,39 +56,35 @@ class repository():
             return False
         return True
 
-    def create(self, data):
+    def create(self, user, data):
         """Create."""
+        username = user
+        token = data['token']
+        key = data['key']
+        status = "active"
+        last_update = datetime.datetime.utcnow()
+        add = {
+            "username": username,
+            "token": token,
+            "key": key,
+            "status": status,
+            "last_update": last_update
+            }
         try:
-            res = self.read(data)
-        except Exception as e:
-            logging.log_error(
-                'Error while reading {}'.format(e),
+            result = self.collection.insert_one(add).inserted_id
+            logging.log_info(
+                "Session Created.",
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
-        if res is None:
-            username = "useradmin"
-            token = data['token']
-            key = data['key']
-            status = "active"
-            last_update = datetime.datetime.utcnow()
-            add = {
-                "username": username,
-                "token": token,
-                "key": key,
-                "status": status,
-                "last_update": last_update
-                }
-            try:
-                result = self.collection.insert_one(add).inserted_id
-            except Exception as e:
-                logging.log_error(
-                    'Error {}'.format(e),
-                    os.path.abspath(__file__),
-                    sys._getframe().f_lineno
-                )
-            return result
-        return None
+            return True
+        except Exception as e:
+            logging.log_error(
+                'Error {}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return False
 
     def read(self, data):
         """Read."""
@@ -152,12 +148,16 @@ class repository():
             update = {"$set": request}
             try:
                 result = self.collection.update_one(filter, update)
-                return result
+                logging.log_info(
+                    "Session Updated...",
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return True
             except Exception as emsg:
                 logging.log_error(
                     'Updating fail. {}'.format(emsg),
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
-                return None
-        pass
+                return False

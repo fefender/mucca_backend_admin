@@ -20,70 +20,24 @@ import os
 import sys
 import json
 from vendor.mucca_logging.mucca_logging import logging
+from src.response.codes import codes
 
 
 class response():
     """Response class."""
 
-    def __init__(self, status, message):
-        """Init."""
-        self.status = status
-        self.message = message
-
-    def setResponse(self):
+    @staticmethod
+    def respond(status, message):
         """Set response."""
-        try:
-            return self.__statusCode(self.status)
-        except Exception as e:
-            logging.log_error(
-                e,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def __statusCode(self, code):
-        """Status code."""
-        codes = {
-            200: self.__okRes(),
-            201: self.__createdRes(),
-            400: self.__badRequestRes(),
-            401: self.__unauthorizedRes(),
-            404: self.__notFoundRes(),
-            500: "internal server error"
-            }
-        func = codes.get(code, lambda: "Invalid status")
-        return func()
-
-    def __okRes(self):
-        """200."""
-        if self.message.Length() > 1:
-            return self.status, self.message
-        else:
-            res = {'message': 'success'}
-            return self.status, str(res)
-
-    def __createdRes(self):
-        """201."""
-        res = {'message': 'created'}
-        return self.status, str(res)
-
-    def __badRequestRes(self):
-        """400."""
-        res = {'message': 'unauthorized'}
-        return self.status, str(res)
-
-    def __unauthorizedRes(self):
-        """401."""
-        res = {'message': 'bad request'}
-        return self.status, str(res)
-
-    def __notFoundRes(self):
-        """404."""
-        res = {'message': 'not found'}
-        return self.status, str(res)
-
-    def __errorRes(self):
-        """500."""
-        res = {'message': 'internal server error'}
-        return self.status, str(res)
+        if status in codes:
+            default_msg = codes[status]
+            response = dict({"message": default_msg})
+            if message is not None:
+                msg = dict({'data': json.loads(message)})
+                response.update(msg)
+        logging.log_info(
+            "Response status {}:{}".format(status, default_msg),
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+        )
+        return status, json.dumps(response)

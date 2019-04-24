@@ -24,6 +24,7 @@ import datetime
 from datetime import timedelta
 from vendor.mucca_logging.mucca_logging import logging
 from src.session.repository.repository import repository
+from src.response.response import response
 import http.client
 
 
@@ -117,9 +118,7 @@ class auth():
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                         )
-                status = 200
-                msg = "ok"
-                return status, msg
+                return response.respond(200, None)
             else:
                 logging.log_warning(
                     'Session Expired',
@@ -138,12 +137,8 @@ class auth():
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                         )
-                status = 401
-                msg = "Anauthorized User"
-                return status, msg
-        status = "not found"
-        msg = "not found"
-        return status, msg
+                return response.respond(401, None)
+        return response.respond(404, None)
 
     def __sessionTimeCheck(self, time):
         """Check if session is stil valid."""
@@ -177,7 +172,6 @@ class auth():
                 response_obj = self.client.getresponse()
                 msg = response_obj.read().decode('utf-8')
                 status = response_obj.status
-                # return status, msg
             except Exception as e:
                 logging.log_error(
                     e,
@@ -185,13 +179,11 @@ class auth():
                     sys._getframe().f_lineno
                     )
             if status == 201:
-                s_resp = self.session_instance.create(json.loads(msg))
-            return status, msg
+                s_resp = self.session_instance.create(
+                    self.request['username'], json.loads(msg))
+            return response.respond(status, msg)
         else:
-            # Sistemare Risposte
-            status = 401
-            msg = "Anauthorized User"
-            return status, msg
+            return response.respond(401, None)
 
     def authorization(self):
         """Authorize user."""
@@ -219,7 +211,7 @@ class auth():
                     'key': self.req_header['key']
                     }
                 s_res = self.session_instance.update(data)
-            return status, msg
+            return response.respond(status, None)
         except Exception as e:
             logging.log_error(
                 e,
@@ -235,7 +227,6 @@ class auth():
                 'key': self.req_header['key']
                 }
             return self.__sessionAuth(data)
-        pass
 
     def logout(self):
         """Logout user."""
@@ -260,7 +251,7 @@ class auth():
             if status == 200:
                 data = {"status": "expired"}
                 s_res = self.session_instance.update(json.loads(data))
-            return status, msg
+            return response.respond(status, None)
         except Exception as e:
             logging.log_error(
                 e,
@@ -269,5 +260,4 @@ class auth():
                 )
             data = {"status": "expired"}
             s_res = self.session_instance.update(json.loads(data))
-            return None
-        pass
+            return response.respond(200, None)

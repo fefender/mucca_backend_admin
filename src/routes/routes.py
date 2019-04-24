@@ -32,20 +32,18 @@ class router():
 
     def __init__(self, request_instance, mongo_instance):
         """init."""
-        # self.path = path
         self.request = request_instance
         self.mongo_connection_instance = mongo_instance
-        self.paths = ['authorization', 'authentication', 'logout']
-        self.actions = ['read', 'create', 'update', 'delete']
-        self.triggers = ['start', 'stop', 'run']
-        self.check_a = False
-        self.check_p = False
-        self.check_t = False
+        self.routes = {
+            "auth": ['authorization', 'authentication', 'logout'],
+            "actions": ['read', 'create', 'update', 'delete'],
+            "triggers": ['start', 'stop', 'run']
+            }
 
     def rout(self):
         """Rout method."""
         if self.request.getVersion() == os.getenv('SERVICE_VERSION'):
-            if self.request.getUri() in self.paths:
+            if self.request.getUri() in self.routes['auth']:
                 logging.log_info(
                     "calling Auth",
                     os.path.abspath(__file__),
@@ -57,9 +55,7 @@ class router():
                     self.mongo_connection_instance)
                 func = getattr(new_auth, self.request.getUri())
                 return func()
-            else:
-                self.check_p = True
-            if self.request.getUri() in self.actions:
+            if self.request.getUri() in self.routes['actions']:
                 logging.log_info(
                     " calling repository",
                     os.path.abspath(__file__),
@@ -68,18 +64,13 @@ class router():
                 new_repository = repository()
                 func = getattr(new_repository, self.request.getUri())
                 return func(self.request.getQuery(), self.request.getBody())
-            else:
-                self.check_a = True
-            if self.request.getUri() in self.triggers:
-                if self.request.getUri() in self.actions:
-                    logging.log_info(
-                        " calling triggers",
-                        os.path.abspath(__file__),
-                        sys._getframe().f_lineno
-                    )
-                else:
-                    self.check_t = True
-            if self.check_a & self.check_p & self.check_t:
+            if self.request.getUri() in self.routes['triggers']:
+                logging.log_info(
+                    " calling triggers",
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+            if self.request.getUri() not in self.routes:
                 logging.log_warning(
                     'Bad request',
                     os.path.abspath(__file__),
