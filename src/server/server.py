@@ -80,6 +80,10 @@ class RequestHandler(BaseHTTPRequestHandler):
         """Response."""
         self.send_response(status)
         self.send_header("Content-type", "application/json;charset=utf-8")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header("Access-Control-Allow-Headers", "*")
         self.end_headers()
         return self.wfile.write(msg.encode())
 

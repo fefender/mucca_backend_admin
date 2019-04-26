@@ -74,7 +74,7 @@ class request():
         self.uri = uri
         return self.uri
 
-    def getQuery(self):
+    def getAction(self):
         """getMethod."""
         path = self.uri.split('/')
         if len(path) > 2:
@@ -82,7 +82,7 @@ class request():
         else:
             return None
 
-    def setQuery(self, uri):
+    def setAction(self, uri):
         """getMethod."""
         self.uri = uri
         return self.uri
@@ -96,6 +96,32 @@ class request():
             return None
 
     def setEnv(self, uri):
+        """getMethod."""
+        self.uri = uri
+        return self.uri
+
+    def getQuery(self):
+        """getMethod."""
+        path = self.uri.split('/')
+        if len(path) > 4:
+            return path[4]
+        else:
+            return None
+
+    def setQuery(self, uri):
+        """getMethod."""
+        self.uri = uri
+        return self.uri
+
+    def getName(self):
+        """getMethod."""
+        path = self.uri.split('/')
+        if len(path) > 5:
+            return path[5]
+        else:
+            return None
+
+    def setName(self, uri):
         """getMethod."""
         self.uri = uri
         return self.uri

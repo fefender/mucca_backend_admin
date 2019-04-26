@@ -68,10 +68,9 @@ class router():
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                     )
-                    new_repository = repository(self.request.getEnv())
-                    func = getattr(new_repository, self.request.getUri())
-                    return func(
-                        self.request.getQuery(), self.request.getBody())
+                    new_repository = repository(self.request)
+                    func = getattr(new_repository, self.request.getAction())
+                    return func()
                 else:
                     return response.respond(401, None)
             if self.request.getUri() in self.routes['triggers']:

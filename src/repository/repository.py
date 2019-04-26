@@ -19,36 +19,21 @@
 import os
 import sys
 import json
+from src.response.response import response
 from vendor.mucca_logging.mucca_logging import logging
 
 
 class repository():
     """Controller class."""
 
-    def __init__(self, env):
+    def __init__(self, request_instance):
         """Init."""
         self.environments = ['develop', 'production', 'stage']
-        self.env = env
+        self.queries = ['config', 'model']
+        self.request = request_instance
+        self.env = self.request.getEnv()
+        self.query = self.request.getQuery()
         pass
-
-    def __getRequestEnvironement(self, data):
-        """Get requested environment."""
-        try:
-            return data["environment"]
-        except Exception as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-        except KeyError as emsg:
-            logging.log_error(
-                emsg,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
 
     def __getConfig(self, env):
         """Get admin username."""
@@ -57,44 +42,94 @@ class repository():
         file_name = '/config.json'
         if env in self.environments:
             path = partial_path + env + file_name
-            with open(path) as file:
-                config = json.load(file)
-                return json.dumps(config)
+            try:
+                with open(path) as file:
+                    config = json.load(file)
+                    return json.dumps(config)
+            except Exception as e:
+                logging.log_warning(
+                    'Not found',
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                return None
         else:
             logging.log_warning(
-                'Bad request',
+                'Not found',
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
             return None
 
-    def create(self, query, data):
+    def __getDataModel(self, env):
+        if self.request.getName():
+            # partial_path = './app/datamodel/mpkg/'
+            partial_path = '../muccapp/mucca_install/app/datamodel/mpkg/'
+            name = self.request.getName()
+            last_half = "/" + name + "/datamodel/"
+            file_name = name + '.json'
+            if env in self.environments:
+                path = partial_path + env + last_half + file_name
+                try:
+                    with open(path) as file:
+                        config = json.load(file)
+                        return json.dumps(config)
+                except Exception as e:
+                    logging.log_warning(
+                        'Not found',
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+        logging.log_warning(
+            'Not Found',
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        return None
+
+    def create(self):
         """Create."""
-        env = self.__getRequestEnvironement(data)
         pass
 
-    def read(self, query, data):
+    def read(self):
         """Read."""
-        # env = self.__getRequestEnvironement(data)
-        try:
-            conf = self.__getConfig(self.env)
-            if conf:
-                status = 200
-                return status, conf
-        except Exception as e:
-            logging.log_error(
-                e,
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            return None
+        if self.query in self.queries:
+            if self.query == "config":
+                try:
+                    conf = self.__getConfig(self.env)
+                    if conf is not None:
+                        return response.respond(200, conf)
+                    else:
+                        return response.respond(404, None)
+                except Exception as e:
+                    logging.log_error(
+                        e,
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+            if self.query == "model":
+                try:
+                    model = self.__getDataModel(self.env)
+                    if model is not None:
+                        return response.respond(200, model)
+                    else:
+                        return response.respond(404, None)
+                except Exception as e:
+                    logging.log_error(
+                        e,
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+        else:
+            return response.respond(404, None)
 
-    def update(self, query, data):
+    def update(self):
         """Update."""
-        env = self.__getRequestEnvironement(data)
         pass
 
-    def delete(self, query, data):
+    def delete(self):
         """Delete."""
-        env = self.__getRequestEnvironement(data)
         pass
