@@ -35,9 +35,10 @@ class response():
             if message is not None:
                 msg = dict({'data': json.loads(message)})
                 response.update(msg)
-        logging.log_info(
-            "Response status {}:{}".format(status, default_msg),
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
-        return status, json.dumps(response)
+            logging.log_info(
+                "Response status {}:{}".format(status, default_msg),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
+            return status, json.dumps(response)
+        return None

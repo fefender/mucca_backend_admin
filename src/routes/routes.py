@@ -57,20 +57,37 @@ class router():
                 func = getattr(new_auth, self.request.getUri())
                 return func()
             if self.request.getUri() in self.routes['actions']:
-                logging.log_info(
-                    " calling repository",
-                    os.path.abspath(__file__),
-                    sys._getframe().f_lineno
-                )
-                new_repository = repository(self.request.getEnv())
-                func = getattr(new_repository, self.request.getUri())
-                return func(self.request.getQuery(), self.request.getBody())
+                new_auth = auth(
+                    self.request.getHeaders(),
+                    self.request.getBody(),
+                    self.mongo_connection_instance)
+                status, msg = new_auth.authorization()
+                if status == 200:
+                    logging.log_info(
+                        " calling repository",
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                    )
+                    new_repository = repository(self.request.getEnv())
+                    func = getattr(new_repository, self.request.getUri())
+                    return func(
+                        self.request.getQuery(), self.request.getBody())
+                else:
+                    return response.respond(401, None)
             if self.request.getUri() in self.routes['triggers']:
-                logging.log_info(
-                    " calling triggers",
-                    os.path.abspath(__file__),
-                    sys._getframe().f_lineno
-                )
+                new_auth = auth(
+                    self.request.getHeaders(),
+                    self.request.getBody(),
+                    self.mongo_connection_instance)
+                status, msg = new_auth.authorization()
+                if status == 200:
+                    logging.log_info(
+                        " calling triggers",
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                    )
+                else:
+                    return response.respond(401, None)
             if self.request.getUri() not in self.routes:
                 logging.log_warning(
                     'Bad request',
