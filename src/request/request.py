@@ -64,7 +64,10 @@ class request():
     def getUri(self):
         """getMethod."""
         path = self.uri.split('/')
-        return path[2]
+        if len(path) > 1:
+            return path[2]
+        else:
+            return None
 
     def setUri(self, uri):
         """getMethod."""
@@ -74,12 +77,25 @@ class request():
     def getQuery(self):
         """getMethod."""
         path = self.uri.split('/')
+        if len(path) > 2:
+            return path[2]
+        else:
+            return None
+
+    def setQuery(self, uri):
+        """getMethod."""
+        self.uri = uri
+        return self.uri
+
+    def getEnv(self):
+        """getMethod."""
+        path = self.uri.split('/')
         if len(path) > 3:
             return path[3]
         else:
             return None
 
-    def setQuery(self, uri):
+    def setEnv(self, uri):
         """getMethod."""
         self.uri = uri
         return self.uri

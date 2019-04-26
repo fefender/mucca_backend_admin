@@ -25,9 +25,10 @@ from vendor.mucca_logging.mucca_logging import logging
 class repository():
     """Controller class."""
 
-    def __init__(self):
+    def __init__(self, env):
         """Init."""
         self.environments = ['develop', 'production', 'stage']
+        self.env = env
         pass
 
     def __getRequestEnvironement(self, data):
@@ -74,9 +75,9 @@ class repository():
 
     def read(self, query, data):
         """Read."""
-        env = self.__getRequestEnvironement(data)
+        # env = self.__getRequestEnvironement(data)
         try:
-            conf = self.__getConfig(env)
+            conf = self.__getConfig(self.env)
             if conf:
                 status = 200
                 return status, conf

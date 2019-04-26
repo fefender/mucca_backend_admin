@@ -58,6 +58,7 @@ class app():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
             )
+            sys.exit()
         logging.log_info(
             "Server Up at {}:{}".format(self.host, self.port),
             os.path.abspath(__file__),

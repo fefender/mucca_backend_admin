@@ -24,6 +24,7 @@ import os
 import sys
 from vendor.mucca_logging.mucca_logging import logging
 from src.auth.auth import auth
+from src.response.response import response
 from src.repository.repository import repository
 
 
@@ -61,7 +62,7 @@ class router():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )
-                new_repository = repository()
+                new_repository = repository(self.request.getEnv())
                 func = getattr(new_repository, self.request.getUri())
                 return func(self.request.getQuery(), self.request.getBody())
             if self.request.getUri() in self.routes['triggers']:
@@ -76,11 +77,11 @@ class router():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
-                return None
+                return response.respond(400, None)
         else:
             logging.log_warning(
                 'Bad request',
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
-            return None
+            return response.respond(400, None)
