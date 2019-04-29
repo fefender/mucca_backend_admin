@@ -17,6 +17,7 @@
 # along with mucca_backend_admin.  If not, see <http://www.gnu.org/licenses/>.
 """Controller."""
 import os
+import re
 import sys
 import json
 from src.response.response import response
@@ -29,7 +30,7 @@ class repository():
     def __init__(self, request_instance):
         """Init."""
         self.environments = ['develop', 'production', 'stage']
-        self.queries = ['config', 'model']
+        self.queries = ['config', 'model', 'portlist']
         self.request = request_instance
         self.env = self.request.getEnv()
         self.query = self.request.getQuery()
@@ -48,14 +49,14 @@ class repository():
                     return json.dumps(config)
             except Exception as e:
                 logging.log_warning(
-                    'Not found',
+                    'Not found.{}'.format(e),
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
                 return None
         else:
             logging.log_warning(
-                'Not found',
+                'Not found.{}'.format(e),
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
@@ -82,10 +83,56 @@ class repository():
                         )
                     return None
         logging.log_warning(
-            'Not Found',
+            'Not Found.{}'.format(e),
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        return None
+
+    def __getPortList(self):
+        """Get apigateway port."""
+        # dir = ''./vendor/builder/netmucca/.portlist'
+        dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
+        try:
+            with open(dir) as file:
+                port_list = file.read()
+                arr = re.findall('[a-z]+:+[0-9]+:+[a-z]', port_list)
+            return self.__getPortByEnv(arr)
+        except Exception as e:
+            logging.log_warning(
+                'Not found.{}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+
+    def __getPortByEnv(self, list_arr):
+        """Returns port list by env."""
+        list_d = dict()
+        if self.env == 'develop':
+            for x in list_arr:
+                newarr = x.split(':', 2)
+                if newarr[2] == 'd':
+                    el = dict({newarr[0]: newarr[1]})
+                    list_d.update(el)
+            list_o = {"develop": list_d}
+            return json.dumps(list_o)
+        if self.env == 'production':
+            for x in list_arr:
+                newarr = x.split(':', 2)
+                if newarr[2] == 'p':
+                    el = dict({newarr[0]: newarr[1]})
+                    list_d.update(el)
+            list_o = {"production": list_d}
+            return json.dumps(list_o)
+        if self.env == 'stage':
+            for x in list_arr:
+                newarr = x.split(':', 2)
+                if newarr[2] == 's':
+                    el = dict({newarr[0]: newarr[1]})
+                    list_d.update(el)
+            list_o = {"stage": list_d}
+            return json.dumps(list_o)
         return None
 
     def create(self):
@@ -114,6 +161,20 @@ class repository():
                     model = self.__getDataModel(self.env)
                     if model is not None:
                         return response.respond(200, model)
+                    else:
+                        return response.respond(404, None)
+                except Exception as e:
+                    logging.log_error(
+                        e,
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+            if self.query == 'portlist':
+                try:
+                    list = self.__getPortList()
+                    if list is not None:
+                        return response.respond(200, list)
                     else:
                         return response.respond(404, None)
                 except Exception as e:
