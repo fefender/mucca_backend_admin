@@ -96,7 +96,7 @@ class repository():
         try:
             with open(dir) as file:
                 port_list = file.read()
-                arr = re.findall('[a-z]+:+[0-9]+:+[a-z]', port_list)
+                arr = re.findall('[a-z?_]+:+[0-9]+:+[a-z]', port_list)
             return self.__getPortByEnv(arr)
         except Exception as e:
             logging.log_warning(
