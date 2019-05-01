@@ -46,6 +46,7 @@ class repository():
             try:
                 with open(path) as file:
                     config = json.load(file)
+                    file.close()
                     return json.dumps(config)
             except Exception as e:
                 logging.log_warning(
@@ -55,6 +56,50 @@ class repository():
                     )
                 return None
         else:
+            logging.log_warning(
+                'Not found.{}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+
+    def __setConfig(self):
+        """Add new Service to config file."""
+        config = self.__getConfig(self.env)
+        c = json.loads(config)
+        print(type(c))
+        c_mpkg = c['mpkg']
+        print (c_mpkg)
+        body = self.request.getBody()
+        basic = {
+          "name": self.request.getName(),
+          "git": "https://github.com/RiccardoCurcio/mucca_crud_py.git",
+          "owner": "RiccardoCurcio",
+          "reponame": "mucca_crud_py",
+          "branch": "develop",
+          "baseimage": "mucca-py",
+          "datamodel": body['datamodel'],
+          "ownerfilter": body['ownerfilter'],
+          "protocol": "udp",
+          "pyrequirements": [
+            "python-dotenv",
+            "pymongo",
+            "tzlocal"
+          ]
+          }
+        c_mpkg.append(basic)
+        c.update({"mpkg": c_mpkg})
+        new_conf = json.dumps(c, indent=1)
+        # partial_path = './app/config/'
+        partial_path = '../muccapp/mucca_install/app/config/'
+        file_name = '/config.json'
+        path = partial_path + self.env + file_name
+        try:
+            with open(path, "w") as file:
+                wr = file.write(new_conf)
+                file.close()
+                return wr
+        except Exception as e:
             logging.log_warning(
                 'Not found.{}'.format(e),
                 os.path.abspath(__file__),
@@ -74,6 +119,7 @@ class repository():
                 try:
                     with open(path) as file:
                         config = json.load(file)
+                        file.close()
                         return json.dumps(config)
                 except Exception as e:
                     logging.log_warning(
@@ -89,6 +135,65 @@ class repository():
             )
         return None
 
+    def __setDataModel(self):
+        """Set new data model."""
+        body = self.request.getBody()
+        try:
+            new_model = dict()
+            schema_obj = dict({"$jsonSchema": {
+                "bsonType": "object",
+                "required": body['required'],
+                "properties": body['properties']}})
+            datamap = dict({"datamapping": schema_obj})
+            new_model.update(datamap)
+            unindx = dict({"uniqueindex": []})
+            new_model.update(unindx)
+            model = json.dumps(new_model, indent=3, sort_keys=True)
+        except Exception as e:
+            logging.log_warning(
+                'Bad request.{}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+        # partial_path = './app/datamodel/mpkg/'
+        partial_path = '../muccapp/mucca_install/app/datamodel/mpkg/'
+        name = self.request.getName()
+        # mod_name = body['modelname'] + ".json"
+        last_half = "/" + name + "/datamodel/"
+        file_name = name + '.json'
+        if self.env in self.environments:
+            try:
+                path = partial_path + self.env + last_half
+                check = open(path)
+            except Exception as e:
+                logging.log_warning(
+                    'Bad request.{} does not exist.{}'.format(name, e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                return None
+            check.close()
+            # path = '../muccapp/mucca_install/app/datamodel/mpkg/develop/cani/datamodel/'
+            with open(path + file_name, "w") as mod:
+                try:
+                    wr = mod.write(model)
+                    mod.close()
+                    return wr
+                except Exception as e:
+                    logging.log_warning(
+                        'Bad request.{}'.format(e),
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+        logging.log_warning(
+            'Bad request.{}'.format(e),
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        return None
+
     def __getPortList(self):
         """Get apigateway port."""
         # dir = ''./vendor/builder/netmucca/.portlist'
@@ -97,6 +202,7 @@ class repository():
             with open(dir) as file:
                 port_list = file.read()
                 arr = re.findall('[a-z?_]+:+[0-9]+:+[a-z]', port_list)
+                file.close()
             return self.__getPortByEnv(arr)
         except Exception as e:
             logging.log_warning(
@@ -107,7 +213,7 @@ class repository():
             return None
 
     def __getPortByEnv(self, list_arr):
-        """Returns port list by env."""
+        """Return port list by env."""
         list_d = dict()
         if self.env == 'develop':
             for x in list_arr:
@@ -137,6 +243,19 @@ class repository():
 
     def create(self):
         """Create."""
+        if self.query in self.queries:
+            if self.query == "model":
+                mod = self.__setDataModel()
+                if mod is not None:
+                    return response.respond(200, None)
+                else:
+                    return response.respond(404, None)
+            if self.query == "config":
+                conf = self.__setConfig()
+                if conf is not None:
+                    return response.respond(200, None)
+                else:
+                    return response.respond(404, None)
         pass
 
     def read(self):
@@ -147,8 +266,7 @@ class repository():
                     conf = self.__getConfig(self.env)
                     if conf is not None:
                         return response.respond(200, conf)
-                    else:
-                        return response.respond(404, None)
+                    return response.respond(404, None)
                 except Exception as e:
                     logging.log_error(
                         e,
@@ -161,8 +279,7 @@ class repository():
                     model = self.__getDataModel(self.env)
                     if model is not None:
                         return response.respond(200, model)
-                    else:
-                        return response.respond(404, None)
+                    return response.respond(404, None)
                 except Exception as e:
                     logging.log_error(
                         e,
@@ -175,8 +292,7 @@ class repository():
                     list = self.__getPortList()
                     if list is not None:
                         return response.respond(200, list)
-                    else:
-                        return response.respond(404, None)
+                    return response.respond(404, None)
                 except Exception as e:
                     logging.log_error(
                         e,
@@ -184,7 +300,6 @@ class repository():
                         sys._getframe().f_lineno
                         )
                     return None
-        else:
             return response.respond(404, None)
 
     def update(self):
