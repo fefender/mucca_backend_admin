@@ -90,7 +90,6 @@ class model():
 
     def get(self, name):
         """Getter."""
-        print("***IN GET***")
         last_half = "/" + name + "/datamodel"
         file_name = "/" + name + '.json'
         if self.env in self.environments:
@@ -113,4 +112,3 @@ class model():
             sys._getframe().f_lineno
             )
         return None
-        pass

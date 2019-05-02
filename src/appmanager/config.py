@@ -36,44 +36,46 @@ class config():
 
     def set(self, key, data):
         """Setter."""
-        config = self.get(None)
-        c = json.loads(config)
-        # if key in self.keys['mpkg', 'superowner', etc]
-        # chiama il rispettivo self.mpkg(data), self.superowner(data)
-        if key == "mpkg":
-            c_mpkg = c['mpkg']
-            basic = {
-              "name": data['modelname'],
-              "git": "https://github.com/RiccardoCurcio/mucca_crud_py.git",
-              "owner": "RiccardoCurcio",
-              "reponame": "mucca_crud_py",
-              "branch": "develop",
-              "baseimage": "mucca-py",
-              "datamodel": data['datamodel'],
-              "ownerfilter": data['ownerfilter'],
-              "protocol": "udp",
-              "pyrequirements": [
-                "python-dotenv",
-                "pymongo",
-                "tzlocal"
-              ]
-              }
-            c_mpkg.append(basic)
-            c.update({"mpkg": c_mpkg})
-            new_conf = json.dumps(c, indent=1)
-            try:
-                with open(self.full_path, "w") as file:
-                    wr = file.write(new_conf)
-                    # f_name = file.name
-                    file.close()
-                    return json.dumps({"createdfile": "config"})
-            except Exception as e:
-                logging.log_warning(
-                    'Not found.{}'.format(e),
-                    os.path.abspath(__file__),
-                    sys._getframe().f_lineno
-                    )
-                return None
+        if self.env in self.environments:
+            config = self.get(None)
+            c = json.loads(config)
+            # if key in self.keys['mpkg', 'superowner', etc]
+            # chiama il rispettivo self.mpkg(data), self.superowner(data)
+            if key == "mpkg":
+                c_mpkg = c['mpkg']
+                basic = {
+                  "name": data['modelname'],
+                  "git": "https://github.com/RiccardoCurcio/mucca_crud_py.git",
+                  "owner": "RiccardoCurcio",
+                  "reponame": "mucca_crud_py",
+                  "branch": "develop",
+                  "baseimage": "mucca-py",
+                  "datamodel": data['datamodel'],
+                  "ownerfilter": data['ownerfilter'],
+                  "protocol": "udp",
+                  "pyrequirements": [
+                    "python-dotenv",
+                    "pymongo",
+                    "tzlocal"
+                  ]
+                  }
+                c_mpkg.append(basic)
+                c.update({"mpkg": c_mpkg})
+                new_conf = json.dumps(c, indent=1)
+                try:
+                    with open(self.full_path, "w") as file:
+                        wr = file.write(new_conf)
+                        # f_name = file.name
+                        file.close()
+                        return json.dumps({"createdfile": "config"})
+                except Exception as e:
+                    logging.log_warning(
+                        'Not found.{}'.format(e),
+                        os.path.abspath(__file__),
+                        sys._getframe().f_lineno
+                        )
+                    return None
+        return None
 
     def get(self, name):
         """Getter."""
@@ -97,3 +99,4 @@ class config():
                 sys._getframe().f_lineno
                 )
             return None
+        return None

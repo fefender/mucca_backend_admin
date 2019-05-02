@@ -29,24 +29,27 @@ class portlist():
     def __init__(self, env):
         """Init."""
         self.env = env
+        self.environments = ['develop', 'production', 'stage']
         # dir = ''./vendor/builder/netmucca/.portlist'
         self.dir = '../muccapp/mucca_install/vendor/builder/netmucca/.portlist'
 
     def get(self, empty):
         """Get apigateway port."""
-        try:
-            with open(self.dir) as file:
-                port_list = file.read()
-                arr = re.findall('[a-z?_]+:+[0-9]+:+[a-z]', port_list)
-                file.close()
-            return self.__getPortByEnv(arr)
-        except Exception as e:
-            logging.log_warning(
-                'Not found.{}'.format(e),
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-                )
-            return None
+        if self.env in self.environments:
+            try:
+                with open(self.dir) as file:
+                    port_list = file.read()
+                    arr = re.findall('[a-z?_]+:+[0-9]+:+[a-z]', port_list)
+                    file.close()
+                return self.__getPortByEnv(arr)
+            except Exception as e:
+                logging.log_warning(
+                    'Not found.{}'.format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                    )
+                return None
+        return None
 
     def __getPortByEnv(self, list_arr):
         """Return port list by env."""
