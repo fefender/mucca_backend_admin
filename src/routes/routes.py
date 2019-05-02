@@ -25,7 +25,7 @@ import sys
 from vendor.mucca_logging.mucca_logging import logging
 from src.auth.auth import auth
 from src.response.response import response
-from src.repository.repository import repository
+from src.appmanager.appmanager import appmanager
 
 
 class router():
@@ -64,12 +64,12 @@ class router():
                 status, msg = new_auth.authorization()
                 if status == 200:
                     logging.log_info(
-                        " calling repository",
+                        " calling appmanager",
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                     )
-                    new_repository = repository(self.request)
-                    func = getattr(new_repository, self.request.getAction())
+                    new_appmanager = appmanager(self.request)
+                    func = getattr(new_appmanager, self.request.getAction())
                     return func()
                 else:
                     return response.respond(401, None)
