@@ -47,6 +47,7 @@ class appmanager():
             if resp is not None:
                 return response.respond(200, resp)
             return response.respond(404, None)
+        return response.respond(404, None)
 
     def read(self):
         """Read."""

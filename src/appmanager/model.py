@@ -82,7 +82,7 @@ class model():
                         )
                     return None
         logging.log_warning(
-            'Bad request.{}'.format(e),
+            'Bad request.',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
