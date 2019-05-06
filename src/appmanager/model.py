@@ -29,9 +29,34 @@ class model():
         """Init."""
         self.env = env
         self.environments = ['develop', 'production', 'stage']
-        self.file_name = '/config.json'
+        # self.file_name = '/config.json'
         # self.partial_path = './app/datamodel/mpkg/'
         self.partial_path = '../muccapp/mucca_install/app/datamodel/mpkg/'
+
+    def __newFolder(self, name):
+        path = self.env + "/" + name
+        try:
+            dir = open(self.partial_path + path, "w")
+        except Exception as e:
+            logging.log_warning(
+                '{}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+        dir.close()
+        path = path + "/" + "datamodel"
+        try:
+            dir_d = open(self.partial_path + path, "w")
+        except Exception as e:
+            logging.log_warning(
+                '{}'.format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+                )
+            return None
+        dir_d.close()
+        return True
 
     def set(self, key, data):
         """Setter."""
@@ -66,7 +91,9 @@ class model():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
-                return None
+                new_fold = self.__newFolder(name)
+                if new_fold is None:
+                    return None
             check.close()
             with open(path, "w") as mod:
                 try:

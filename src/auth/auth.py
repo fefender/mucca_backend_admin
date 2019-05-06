@@ -249,8 +249,10 @@ class auth():
             msg = response_obj.read().decode('utf-8')
             status = response_obj.status
             if status == 200:
-                data = {"status": "expired"}
-                s_res = self.session_instance.update(json.loads(data))
+                data = {"status": "expired",
+                        "token": self.req_header['token'],
+                        "key": self.req_header['key']}
+                s_res = self.session_instance.update(data)
             return response.respond(status, None)
         except Exception as e:
             logging.log_error(
@@ -258,6 +260,8 @@ class auth():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
-            data = {"status": "expired"}
-            s_res = self.session_instance.update(json.loads(data))
+            data = {"status": "expired",
+                    "token": self.req_header['token'],
+                    "key": self.req_header['key']}
+            s_res = self.session_instance.update(data)
             return response.respond(200, None)
