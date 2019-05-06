@@ -36,7 +36,6 @@ class appmanager():
     def create(self):
         """Create."""
         if self.query in self.queries:
-            print("IF---CrEATE APP MANAGER")
             clss = getattr(
                 import_module("src.appmanager." + self.query),
                 self.query)
@@ -44,7 +43,7 @@ class appmanager():
             func = getattr(instance, "set")
             resp = func(self.request.getName(), self.request.getBody())
             if resp is not None:
-                return response.respond(200, resp)
+                return response.respond(201, resp)
             return response.respond(404, None)
         return response.respond(404, None)
 

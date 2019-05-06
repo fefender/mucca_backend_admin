@@ -58,7 +58,6 @@ class model():
 
     def set(self, key, data):
         """Setter."""
-        print("called set model")
         try:
             new_model = dict()
             schema_obj = dict({"$jsonSchema": {
