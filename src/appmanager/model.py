@@ -36,7 +36,7 @@ class model():
     def __newFolder(self, name):
         path = self.env + "/" + name
         try:
-            dir = open(self.partial_path + path, "w")
+            os.mkdir(self.partial_path + path)
         except Exception as e:
             logging.log_warning(
                 '{}'.format(e),
@@ -44,10 +44,9 @@ class model():
                 sys._getframe().f_lineno
                 )
             return None
-        dir.close()
         path = path + "/" + "datamodel"
         try:
-            dir_d = open(self.partial_path + path, "w")
+            os.mkdir(self.partial_path + path)
         except Exception as e:
             logging.log_warning(
                 '{}'.format(e),
@@ -55,11 +54,11 @@ class model():
                 sys._getframe().f_lineno
                 )
             return None
-        dir_d.close()
         return True
 
     def set(self, key, data):
         """Setter."""
+        print("called set model")
         try:
             new_model = dict()
             schema_obj = dict({"$jsonSchema": {
@@ -85,6 +84,7 @@ class model():
             try:
                 path = self.partial_path + self.env + last_half + file_name
                 check = open(path)
+                check.close()
             except Exception as e:
                 logging.log_warning(
                     '{} does not exist.{}.Exec --build first.'.format(name, e),
@@ -94,7 +94,6 @@ class model():
                 new_fold = self.__newFolder(name)
                 if new_fold is None:
                     return None
-            check.close()
             with open(path, "w") as mod:
                 try:
                     wr = mod.write(model)
