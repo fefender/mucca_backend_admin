@@ -66,7 +66,7 @@ class model():
                 "properties": data['properties']}})
             datamap = dict({"datamapping": schema_obj})
             new_model.update(datamap)
-            unindx = dict({"uniqueindex": []})
+            unindx = dict({"uniqueindex": data['uniqueindex']})
             new_model.update(unindx)
             model = json.dumps(new_model, indent=3, sort_keys=True)
         except Exception as e:
