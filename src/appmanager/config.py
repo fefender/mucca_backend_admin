@@ -31,7 +31,8 @@ class config():
         self.environments = ['develop', 'production', 'stage']
         self.file_name = '/config.json'
         # self.partial_path = './app/config/'
-        self.partial_path = '../muccapp/mucca_install/app/config/'
+        # self.partial_path = '../muccapp/mucca_install/app/config/'
+        self.partial_path = os.getenv('CONFIG_PATH')
         self.full_path = self.partial_path + self.env + self.file_name
 
     def set(self, key, data):

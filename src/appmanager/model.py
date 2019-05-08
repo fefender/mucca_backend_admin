@@ -31,7 +31,8 @@ class model():
         self.environments = ['develop', 'production', 'stage']
         # self.file_name = '/config.json'
         # self.partial_path = './app/datamodel/mpkg/'
-        self.partial_path = '../muccapp/mucca_install/app/datamodel/mpkg/'
+        # '../muccapp/mucca_install/app/datamodel/mpkg/'
+        self.partial_path = os.getenv('MODEL_PATH')
 
     def __newFolder(self, name):
         path = self.env + "/" + name

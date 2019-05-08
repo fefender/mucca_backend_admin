@@ -26,6 +26,7 @@ from vendor.mucca_logging.mucca_logging import logging
 from src.auth.auth import auth
 from src.response.response import response
 from src.appmanager.appmanager import appmanager
+from src.triggers.triggers import triggers
 
 
 class router():
@@ -38,7 +39,7 @@ class router():
         self.routes = {
             "auth": ['authorization', 'authentication', 'logout'],
             "actions": ['read', 'create', 'update', 'delete'],
-            "triggers": ['start', 'stop', 'run']
+            "triggers": ['start', 'stop', 'run', 'build', 'logs']
             }
 
     def rout(self):
@@ -85,6 +86,9 @@ class router():
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                     )
+                    new_triggers = triggers(self.request.getUri())
+                    res = new_triggers.trigger()
+                    print(res)
                 else:
                     return response.respond(401, None)
             if self.request.getUri() not in self.routes:
