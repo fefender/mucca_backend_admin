@@ -88,7 +88,8 @@ class router():
                     )
                     new_triggers = triggers(self.request.getUri())
                     res = new_triggers.trigger()
-                    print(res)
+                    print("in routes {}".format(res))
+                    # return response.respond(200, res)
                 else:
                     return response.respond(401, None)
             if self.request.getUri() not in self.routes:

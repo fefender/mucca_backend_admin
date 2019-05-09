@@ -20,6 +20,7 @@ import os
 import sys
 import threading
 import time
+import queue
 # import subprocess
 from subprocess import Popen, PIPE
 from vendor.mucca_logging.mucca_logging import logging
@@ -36,32 +37,46 @@ class triggers():
         # self.env = env
         pass
 
-    def firstRes(self):
+    def firstRes(self, queue):
+        """Start response."""
         logging.log_info(
-            'This is the method to return first response',
+            '[Start] command',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        # res = {"message": "wait"}
+        # return res
+        result = "START"
+        queue.put(result)
 
-    def lastRes(self):
+    def lastRes(self, queue):
+        """End response."""
         logging.log_info(
-            'This is the method to return last response [end]',
+            '[End] command',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        # res = {"message": "done"}
+        # return res
+        result = "END"
+        queue.put(result)
 
     def trigger(self):
-        command_target = self.command
-        t1 = threading.Thread(name='first response', target=self.firstRes)
-        t2 = threading.Thread(name='daemon', target=self.run())
+        """Trigger method."""
+        print("****{}".format(self.command))
+        que = queue.Queue()
+        func = getattr(self, self.command)
+        t1 = threading.Thread(name='first response', target=self.firstRes(que))
+        t2 = threading.Thread(name='daemon', target=func(que))
         t2.setDaemon(True)
-        t3 = threading.Thread(name='last response', target=self.lastRes)
+        t3 = threading.Thread(name='last response', target=self.lastRes(que))
         t1.start()
         t2.start()
-        print(t2.target)
         t3.start()
-        # t2.join()
         t3.join()
+        while not que.empty():
+            result = que.get()
+            print("****** {} ****".format(result))
         pass
 
     def start(self):
@@ -70,19 +85,21 @@ class triggers():
     def stop(self):
         pass
 
-    def run(self):
+    def run(self, queue):
         logging.log_info(
             'Run command',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
-        pop = Popen(
-            ['./mucca', '--run'],
-            cwd=self.path,
-            stdin=PIPE)
-        print(pop)
-        outs, errs = pop.communicate(input=b'\n')
-        return outs
+        # pop = Popen(
+        #     ['./mucca', '--run'],
+        #     cwd=self.path,
+        #     stdin=PIPE)
+        # print(pop)
+        # outs, errs = pop.communicate(input=b'\n')
+        # return outs
+        result = "OUTPUT"
+        queue.put(result)
 
     def build(self):
         pass
