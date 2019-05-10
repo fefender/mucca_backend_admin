@@ -86,7 +86,7 @@ class router():
                         os.path.abspath(__file__),
                         sys._getframe().f_lineno
                     )
-                    new_triggers = triggers(self.request.getUri())
+                    new_triggers = triggers(self.request)
                     res = new_triggers.trigger()
                     print("in routes {}".format(res))
                     # return response.respond(200, res)
