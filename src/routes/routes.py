@@ -39,7 +39,7 @@ class router():
         self.routes = {
             "auth": ['authorization', 'authentication', 'logout'],
             "actions": ['read', 'create', 'update', 'delete'],
-            "triggers": ['start', 'stop', 'run', 'build', 'logs']
+            "triggers": ['list', 'stop', 'run', 'build', 'help', 'logs']
             }
 
     def rout(self):
@@ -87,9 +87,7 @@ class router():
                         sys._getframe().f_lineno
                     )
                     new_triggers = triggers(self.request)
-                    res = new_triggers.trigger()
-                    print("in routes {}".format(res))
-                    # return response.respond(200, res)
+                    return new_triggers.trigger()
                 else:
                     return response.respond(401, None)
             if self.request.getUri() not in self.routes:

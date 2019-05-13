@@ -22,10 +22,12 @@ import threading
 import time
 import datetime
 import queue
+import json
 # import subprocess
 from subprocess import Popen, PIPE
 from vendor.mucca_logging.mucca_logging import logging
-# from src.response.response import response
+from src.triggers.wsserver import wsserver
+from src.response.response import response
 
 
 class triggers():
@@ -39,31 +41,14 @@ class triggers():
         # self.path = r'./'
         self.path = r'../muccapp/mucca_install'
         self.wrlogs_path = os.getenv('WRLOGS_PATH')
-        pass
 
-    # def firstRes(self, queue):
-    #     """Start response."""
-    #     logging.log_info(
-    #         '[Start] command',
-    #         os.path.abspath(__file__),
-    #         sys._getframe().f_lineno
-    #         )
-    #     # res = {"message": "wait"}
-    #     # return res
-    #     result = "START"
-    #     queue.put(result)
-    #
-    # def lastRes(self, queue):
-    #     """End response."""
-    #     logging.log_info(
-    #         '[End] command',
-    #         os.path.abspath(__file__),
-    #         sys._getframe().f_lineno
-    #         )
-    #     # res = {"message": "done"}
-    #     # return res
-    #     result = "END"
-    #     queue.put(result)
+    def __getWssPort(self):
+        if self.env == "develop":
+            return os.getenv('WSS_PORT_D')
+        if self.env == "production":
+            return os.getenv('WSS_PORT_P')
+        if self.env == "stage":
+            return os.getenv('WSS_PORT_S')
 
     def trigger(self):
         """Trigger method."""
@@ -72,78 +57,155 @@ class triggers():
         id = os.getppid()
         pid = str(object=id)
         day = datetime.datetime.today()
+        y = day.year
+        m = day.month
+        d = day.day
+        fname = "/" + str(y) + str(m) + str(d) + "_" + pid + ".log"
         func = getattr(self, self.command)
-        t1 = threading.Thread(
-            name='log writer',
-            target=self.wrLogs(day, pid, que))
-        t2 = threading.Thread(name='daemon', target=func(que, pid))
-        print("parent id")
-        print(id)
-        t2.setDaemon(True)
-        # t3 = threading.Thread(name='start server', target=self.lastRes(que))
+        ws_port = self.__getWssPort()
+        # t1 = threading.Thread(
+        #     name='websocket server',
+        #     target=wsserver.start(ws_port),
+        #     daemon=True)
+        t2 = threading.Thread(
+            name='command',
+            target=func(fname, que),
+            daemon=True)
         t2.start()
-        t1.start()
-        # t3.start()
-        # t3.join()
-        # while not que.empty():
-        #     result = que.get()
-        #     print("****** {} ****".format(result))
-        return None
+        if not que.empty():
+            resp = {'port': ws_port,
+                    'fname': fname}
+            # new_server = wsserver()
+            # t1.start()
+            return response.respond(200, json.dumps(resp))
+        return response.respond(400, None)
 
-    def start(self):
-        pass
+    def list(self, fname, que):
+        """Start."""
+        logging.log_info(
+            'List command',
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        with open(self.wrlogs_path + fname, "w") as log:
+            try:
+                pop = Popen(
+                    ['./mucca', '--start', self.env],
+                    cwd=self.path,
+                    stdout=log)
+            except Exception as e:
+                logging.log_error(
+                    "Error in list:{}".format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            if pop.poll() is None:
+                que.put("polling")
+            log.close()
 
-    def stop(self):
-        pass
+    def stop(self, fname, que):
+        """Stop."""
+        logging.log_info(
+            'Stop command',
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        with open(self.wrlogs_path + fname, "w") as log:
+            try:
+                pop = Popen(
+                    ['./mucca', '--stop', self.env],
+                    cwd=self.path,
+                    stdout=log)
+            except Exception as e:
+                logging.log_error(
+                    "Error in stop:{}".format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            if pop.poll() is None:
+                que.put("polling")
+            log.close()
 
-    def run(self, queue, id):
+    def run(self, fname, que):
+        """Run."""
         logging.log_info(
             'Run command',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
-        try:
-            pop = Popen(
-                ['./mucca', '--run', self.env],
-                cwd=self.path,
-                stdin=PIPE)
-            outs, errs = pop.communicate(input=b'\n')
-            queue.put(outs)
-            date = datetime.datetime.today()
-            y = date.year
-            m = date.month
-            d = date.day
-            fname = "/" + str(y) + str(m) + str(d) + "_" + id + ".log"
-            while not queue.empty():
-                result = queue.get()
-                with open(self.wrlogs_path + fname, "w") as log:
-                    log.write(result)
-            print("Qui avvio il ws server mandandogli")
-        except Exception as e:
-            logging.log_error(
-                "Error in run:{}".format(e),
-                os.path.abspath(__file__),
-                sys._getframe().f_lineno
-            )
-            return None
-
-    def wrLogs(self, date, pid, queue):
-        y = date.year
-        m = date.month
-        d = date.day
-        print(type(pid))
-        fname = "/" + str(y) + str(m) + str(d) + "_" + pid + ".log"
+        ws_port = self.__getWssPort()
+        t1 = threading.Thread(
+            name='websocket server',
+            target=wsserver.start(ws_port),
+            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
-            while not queue.empty():
-                result = queue.get()
-                log.write(result)
-        # if queue.empty():
-        #     with open(self.wrlogs_path + fname, "a") as log:
-        #         log.write("DONE.")
-        #         log.close()
+            try:
+                pop = Popen(
+                    ['./mucca', '--run', self.env],
+                    cwd=self.path,
+                    stdout=log)
+            except Exception as e:
+                logging.log_error(
+                    "Error in run:{}".format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            if pop.poll() is None:
+                que.put("polling")
+                t1.start()
+            log.close()
 
-    def build(self):
-        pass
+    def build(self, fname, que):
+        """Build."""
+        logging.log_info(
+            'Build command',
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        with open(self.wrlogs_path + fname, "w") as log:
+            try:
+                pop = Popen(
+                    ['./mucca', '--build', self.env],
+                    cwd=self.path,
+                    stdout=log)
+            except Exception as e:
+                logging.log_error(
+                    "Error in build:{}".format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            if pop.poll() is None:
+                que.put("polling")
+            log.close()
+
+    def help(self, fname, que):
+        """Help."""
+        logging.log_info(
+            'Help command',
+            os.path.abspath(__file__),
+            sys._getframe().f_lineno
+            )
+        with open(self.wrlogs_path + fname, "w") as log:
+            try:
+                pop = Popen(
+                    ['./mucca', '--help', self.env],
+                    cwd=self.path,
+                    stdout=log)
+            except Exception as e:
+                logging.log_error(
+                    "Error in help:{}".format(e),
+                    os.path.abspath(__file__),
+                    sys._getframe().f_lineno
+                )
+                return None
+            if pop.poll() is None:
+                que.put("polling")
+            log.close()
 
     def logs(self):
+        """Logs."""
         pass
