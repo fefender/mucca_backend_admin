@@ -19,87 +19,45 @@
 import os
 import sys
 import time
+import json
 import asyncio
 import websockets
-from vendor.mucca_logging.mucca_logging import logging
-from src.response.response import response
+# from vendor.mucca_logging.mucca_logging import logging
+# from src.response.response import response
+
+print("Started at {}".format(sys.argv[1]))
 
 async def echo(websocket, path):
-    print("Echo called")
-    data = await ws.recv()
+    data = await websocket.recv()
     print(data)
-    await websocket.send(message+i)
-    # await asyncio.sleep(1)
+    dt = json.loads(data)
+    fname = dt['filename']
+    path = "../../logs/" + fname
+    print(path)
+    doc = ""
+    for line in open(path):
+        await websocket.send(line)
+        time.sleep(0.3)
+    # with open(path) as file:
+    #     log = file.read()
+        # print(log)
+        # for i in log:
+        #     print(i)
+        #     # await websocket.send(log+i)
+        #     time.sleep(0.1)
+
     # async for message in websocket:
     #     for i in ["msg1", "msg2", "msg3", "end"]:
     #         await websocket.send(message+i)
     #         time.sleep(1)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
 
-class wsserver():
-    """Websocket server class."""
+# arg = int(sys.argv[1])
+# print(type(arg))
+# if arg == 8081 | 8082 | 8083:
+#     print("Opening on {}".format(sys.argv[1]))
+#     ws = websockets.serve(echo, 'localhost', int(sys.argv[1]))
+#     asyncio.get_event_loop().run_until_complete(ws)
 
-    def start(port):
-        """Start."""
-        print ("start")
-        s_port = int(port)
-        s_host = os.getenv('WSS_HOST')
-        start_server = websockets.serve(echo, s_host, s_port)
-        # asyncio.get_event_loop().run_until_complete(
-        #     websockets.serve(echo, s_host, s_port)
-        # )
-        # asyncio.get_event_loop().run_forever()
-
-# class wsserver():
-#     """Websocket server class."""
-
-# async def start(port):
-#     """Start."""
-#     print("Start ws server")
-#     s_port = int(port)
-#     s_host = os.getenv('WSS_HOST')
-#     with websockets.serve(echo, s_host, s_port) as ws:
-#         data = await ws.recv()
-#     # def __init__(self, port):
-#     #     self.host = os.getenv('WSS_HOST')
-#     #     self.port= int(port)
-#     #     self.start_server = websockets.serve(echo, self.host, self.port)
-#     #     print("Init wsserver")
-#
-#     # async def hello_world(self):
-#     #     while True:
-#     #         print("Hello World!")
-#     #         await asyncio.sleep(1)
-#     #     return self
-#     #
-#     # def __await__(self):
-#     #     return self.hello_world().__await__()
-#
-# async def echo(websocket, path):
-#     print("in async")
-#     data = await websocket.recv()
-#     print("***")
-#     print(data)
-#
-#     await websocket.send("Sto rispondendo")
-#     print("RIsposta")
-#     # async for message in websocket:
-#     #     for i in ["msg1", "msg2", "msg3", "end"]:
-#     #         await websocket.send(message+i)
-#     #         time.sleep(1)
-#
-#     asyncio.get_event_loop().run_until_complete(
-#         self.start_server
-#     )
-#
-# # asyncio.get_event_loop().run_until_complete(
-# #     websockets.serve(echo, 'localhost', 8083)
-# # )
-# #
-# # asyncio.get_event_loop().run_until_complete(
-# #     websockets.serve(echo, 'localhost', 8082)
-# # )
-#
-#
-# asyncio.get_event_loop().run_forever()
+ws = websockets.serve(echo, 'localhost', int(sys.argv[1]))
+asyncio.get_event_loop().run_until_complete(ws)
+asyncio.get_event_loop().run_forever()

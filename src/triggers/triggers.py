@@ -26,7 +26,7 @@ import json
 # import subprocess
 from subprocess import Popen, PIPE
 from vendor.mucca_logging.mucca_logging import logging
-from src.triggers.wsserver import wsserver
+# from src.triggers.wsserver import wsserver
 from src.response.response import response
 
 
@@ -49,6 +49,21 @@ class triggers():
             return os.getenv('WSS_PORT_P')
         if self.env == "stage":
             return os.getenv('WSS_PORT_S')
+
+    def startWss(self):
+        """Start websocket server."""
+        ws_port = self.__getWssPort()
+        path = "src/triggers"
+        try:
+            pop = Popen(
+                ['python3.7', 'wsserver.py', ws_port],
+                cwd=path)
+        except Exception as e:
+            logging.log_error(
+                "Error in list:{}".format(e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
 
     def trigger(self):
         """Trigger method."""
@@ -135,10 +150,11 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
-        ws_port = self.__getWssPort()
+        # ws_port = self.__getWssPort()
+        # new_wss = wsserver(ws_port)
         t1 = threading.Thread(
             name='websocket server',
-            target=wsserver.start(ws_port),
+            target=self.startWss,
             daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
