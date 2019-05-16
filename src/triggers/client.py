@@ -3,7 +3,7 @@ import websockets
 import json
 
 async def hello(uri):
-    data = json.dumps({"filename": "2019515_14875.log"})
+    data = json.dumps({"filename": "2019516_11240.log"})
     async with websockets.connect(uri) as websocket:
         await websocket.send(data)
         re = await websocket.recv()

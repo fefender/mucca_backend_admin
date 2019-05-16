@@ -53,7 +53,8 @@ class triggers():
     def startWss(self):
         """Start websocket server."""
         ws_port = self.__getWssPort()
-        path = "src/triggers"
+        # path = "src/triggers"
+        path = "./"
         try:
             pop = Popen(
                 ['python3.7', 'wsserver.py', ws_port],
