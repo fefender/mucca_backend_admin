@@ -90,6 +90,7 @@ class triggers():
         t2.start()
         if not que.empty():
             resp = {'port': ws_port,
+                    'action': self.command,
                     'fname': fname}
             # new_server = wsserver()
             # t1.start()
