@@ -27,49 +27,6 @@ from dotenv import find_dotenv
 from importlib import import_module
 from vendor.mucca_logging.mucca_logging import logging
 
-# *****
-# print("Started at {}".format(sys.argv[1]))
-# print(__name__)
-# print(__name__ == "__main__")
-#
-# async def echo(websocket, path):
-#     data = await websocket.recv()
-#     print(data)
-#     dt = json.loads(data)
-#     fname = dt['filename']
-#     path = "../../logs/" + fname
-#     print(path)
-#     # doc = ""
-#     for line in open(path):
-#         await websocket.send(line)
-#         time.sleep(0.3)
-        # *****
-
-    # with open(path) as file:
-    #     log = file.read()
-        # print(log)
-        # for i in log:
-        #     print(i)
-        #     # await websocket.send(log+i)
-        #     time.sleep(0.1)
-
-    # async for message in websocket:
-    #     for i in ["msg1", "msg2", "msg3", "end"]:
-    #         await websocket.send(message+i)
-    #         time.sleep(1)
-
-# arg = int(sys.argv[1])
-# print(type(arg))
-# if arg == 8081 | 8082 | 8083:
-#     print("Opening on {}".format(sys.argv[1]))
-#     ws = websockets.serve(echo, 'localhost', int(sys.argv[1]))
-#     asyncio.get_event_loop().run_until_complete(ws)
-
-# *****
-# ws = websockets.serve(echo, 'localhost', int(sys.argv[1]))
-# asyncio.get_event_loop().run_until_complete(ws)
-# asyncio.get_event_loop().run_forever()
-#
 
 class wsServer():
 
@@ -77,10 +34,11 @@ class wsServer():
         """Class constructor."""
         self.port =  int(sys.argv[1])
         self.host = os.getenv('WSS_HOST')
+        self.port_list = [8081, 8082, 8083]
 
     def run(self):
         """Server run."""
-        # if self.host == 8081 | 8082 | 8083:
+        # if self.host == 8081 or 8082 or 8083:
         ws = websockets.serve(self.handler, self.host, self.port)
         logging.log_info(
             "{} up at:{}".format(
@@ -120,7 +78,8 @@ if __name__ == "__main__":
         load_dotenv(find_dotenv())
         name = os.getenv('WSS_NAME')
         app = wsServer(name)
-        app.run()
+        if app.port in app.port_list:
+            app.run()
     except KeyboardInterrupt:
         logging.log_info(
             "Intercepted KeyboardInterrupt close {}".format(name),
