@@ -104,6 +104,10 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        t1 = threading.Thread(
+            name='websocket server',
+            target=self.startWss,
+            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 pop = Popen(
@@ -119,6 +123,7 @@ class triggers():
                 return None
             if pop.poll() is None:
                 que.put("polling")
+                t1.start()
             log.close()
 
     def stop(self, fname, que):
@@ -128,6 +133,10 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        t1 = threading.Thread(
+            name='websocket server',
+            target=self.startWss,
+            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 pop = Popen(
@@ -143,6 +152,7 @@ class triggers():
                 return None
             if pop.poll() is None:
                 que.put("polling")
+                t1.start()
             log.close()
 
     def run(self, fname, que):
@@ -152,8 +162,6 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
-        # ws_port = self.__getWssPort()
-        # new_wss = wsserver(ws_port)
         t1 = threading.Thread(
             name='websocket server',
             target=self.startWss,
@@ -183,6 +191,10 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        t1 = threading.Thread(
+            name='websocket server',
+            target=self.startWss,
+            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 pop = Popen(
@@ -198,6 +210,7 @@ class triggers():
                 return None
             if pop.poll() is None:
                 que.put("polling")
+                t1.start()
             log.close()
 
     def help(self, fname, que):
@@ -207,6 +220,10 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
+        t1 = threading.Thread(
+            name='websocket server',
+            target=self.startWss,
+            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 pop = Popen(
@@ -222,6 +239,7 @@ class triggers():
                 return None
             if pop.poll() is None:
                 que.put("polling")
+                t1.start()
             log.close()
 
     def logs(self):

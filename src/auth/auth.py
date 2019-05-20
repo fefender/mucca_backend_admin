@@ -178,12 +178,13 @@ class auth():
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                     )
+                data = {"data": "sso authentication failed"}
+                return response.respond(401, json.dumps(data))
             if status == 201:
                 s_resp = self.session_instance.create(
                     self.request['username'], json.loads(msg))
             return response.respond(status, msg)
-        else:
-            return response.respond(401, None)
+        return response.respond(401, None)
 
     def authorization(self):
         """Authorize user."""
@@ -218,10 +219,6 @@ class auth():
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )
-        # [2019-04-19 18:30:17]
-        #  ERROR AdminBackEnd /home/fefe/Develop/mucca-project
-        # /mucca_backend_admin/src/auth/auth.py:133
-        # "Remote end closed connection without response"
             data = {
                 'token': self.req_header['token'],
                 'key': self.req_header['key']

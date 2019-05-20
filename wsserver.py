@@ -55,8 +55,13 @@ class wsServer():
         path = self.getPath(data)
         if path is not None:
             for line in open(path):
+                time.sleep(0.8)
                 await websocket.send(line)
-                time.sleep(0.3)
+                if "Done." not in line:
+                    time.sleep(0.5)
+                # time.sleep(1)
+                # await websocket.send(line)
+                # time.sleep(1)
 
     def getPath(self, rec):
         """Get logs path."""
