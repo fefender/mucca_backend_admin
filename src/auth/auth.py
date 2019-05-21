@@ -214,8 +214,8 @@ class auth():
                 s_res = self.session_instance.update(data)
             return response.respond(status, None)
         except Exception as e:
-            logging.log_error(
-                e,
+            logging.log_warning(
+                "App sso not available. {}".format(e),
                 os.path.abspath(__file__),
                 sys._getframe().f_lineno
                 )

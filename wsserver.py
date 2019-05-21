@@ -25,6 +25,8 @@ import websockets
 from dotenv import load_dotenv
 from dotenv import find_dotenv
 from importlib import import_module
+import subprocess
+from subprocess import Popen, PIPE
 from vendor.mucca_logging.mucca_logging import logging
 
 
@@ -36,16 +38,29 @@ class wsServer():
         self.host = os.getenv('WSS_HOST')
         self.port_list = [8081, 8082, 8083]
 
+    # def health_check(self, path, request_headers):
+    #     print(path)
+    #     print(request_headers)
+
     def run(self):
         """Server run."""
         # if self.host == 8081 or 8082 or 8083:
-        ws = websockets.serve(self.handler, self.host, self.port)
+        ws = websockets.serve(
+            self.handler,
+            self.host,
+            self.port)
+        # ws = websockets.serve(
+        #     self.handler,
+        #     self.host,
+        #     self.port,
+        #     process_request=self.health_check)
         logging.log_info(
             "{} up at:{}".format(
             name, self.port),
             os.path.abspath(__file__),
             sys._getframe().f_lineno
         )
+        # print(dir(websockets))
         asyncio.get_event_loop().run_until_complete(ws)
         asyncio.get_event_loop().run_forever()
 
@@ -59,9 +74,7 @@ class wsServer():
                 await websocket.send(line)
                 if "Done." not in line:
                     time.sleep(0.5)
-                # time.sleep(1)
-                # await websocket.send(line)
-                # time.sleep(1)
+
 
     def getPath(self, rec):
         """Get logs path."""

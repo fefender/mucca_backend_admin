@@ -244,4 +244,8 @@ class triggers():
 
     def logs(self):
         """Logs."""
+        #     pop = subprocess.Popen(
+        #         ['tail', '-f', '2019521_5112.log'],
+        #         cwd="logs/",
+        #         stdout=subprocess.PIPE)
         pass
