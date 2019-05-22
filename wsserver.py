@@ -61,8 +61,15 @@ class wsServer():
             sys._getframe().f_lineno
         )
         # print(dir(websockets))
-        asyncio.get_event_loop().run_until_complete(ws)
-        asyncio.get_event_loop().run_forever()
+        try:
+            asyncio.get_event_loop().run_until_complete(ws)
+            asyncio.get_event_loop().run_forever()
+        except Exception as e:
+            logging.log_warning(
+                "Wsserver already up at {}.{}".format(self.port, e),
+                os.path.abspath(__file__),
+                sys._getframe().f_lineno
+            )
 
     async def handler(self, websocket, path):
         """Websocket handler."""

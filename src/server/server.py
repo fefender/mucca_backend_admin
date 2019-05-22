@@ -38,11 +38,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
         """Option."""
-        logging.log_info(
-            "Option",
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
         self.send_response(200, "ok")
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -52,11 +47,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Post."""
-        logging.log_info(
-            "New request",
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
         new_request = request(self)
         new_router = router(new_request, self.mongo_connection_instance)
         status, msg = new_router.rout()
@@ -65,11 +55,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Get."""
-        logging.log_info(
-            "New request",
-            os.path.abspath(__file__),
-            sys._getframe().f_lineno
-        )
         new_request = request(self)
         new_router = router(new_request, self.mongo_connection_instance)
         status, msg = new_router.rout()
