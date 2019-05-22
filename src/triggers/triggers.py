@@ -36,6 +36,7 @@ class triggers():
     def __init__(self, request):
         """Init."""
         self.env = request.getEnv()
+        self.query = request.getQuery()
         self.command = request.getUri()
         self.triggers_path = os.getenv('TRIGGERS_PATH')
         # self.path = r'./'
@@ -79,10 +80,6 @@ class triggers():
         fname = "/" + str(y) + str(m) + str(d) + "_" + pid + ".log"
         func = getattr(self, self.command)
         ws_port = self.__getWssPort()
-        # t1 = threading.Thread(
-        #     name='websocket server',
-        #     target=wsserver.start(ws_port),
-        #     daemon=True)
         t2 = threading.Thread(
             name='command',
             target=func(fname, que),
@@ -92,8 +89,6 @@ class triggers():
             resp = {'port': ws_port,
                     'action': self.command,
                     'fname': fname}
-            # new_server = wsserver()
-            # t1.start()
             return response.respond(200, json.dumps(resp))
         return response.respond(400, None)
 
@@ -111,7 +106,7 @@ class triggers():
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 pop = Popen(
-                    ['./mucca', '--start', self.env],
+                    ['./mucca', '--list', self.env],
                     cwd=self.path,
                     stdout=log)
             except Exception as e:
@@ -139,8 +134,12 @@ class triggers():
             daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
+                command = ['./mucca', '--stop', self.env]
+                if self.query is not None:
+                    command = ['./mucca', '--stop', self.env,
+                               '--only', self.query[1]]
                 pop = Popen(
-                    ['./mucca', '--stop', self.env],
+                    command,
                     cwd=self.path,
                     stdout=log)
             except Exception as e:
@@ -168,8 +167,12 @@ class triggers():
             daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
+                command = ['./mucca', '--run', self.env]
+                if self.query is not None:
+                    command = ['./mucca', '--run', self.env,
+                               '--only', self.query[1]]
                 pop = Popen(
-                    ['./mucca', '--run', self.env],
+                    command,
                     cwd=self.path,
                     stdout=log)
             except Exception as e:
@@ -197,8 +200,12 @@ class triggers():
             daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
+                command = ['./mucca', '--build', self.env]
+                if self.query is not None:
+                    command = ['./mucca', '--build', self.env,
+                               '--only', self.query[1]]
                 pop = Popen(
-                    ['./mucca', '--build', self.env],
+                    command,
                     cwd=self.path,
                     stdout=log)
             except Exception as e:
@@ -213,10 +220,10 @@ class triggers():
                 t1.start()
             log.close()
 
-    def help(self, fname, que):
-        """Help."""
+    def status(self, fname, que):
+        """Status."""
         logging.log_info(
-            'Help command',
+            'Status command',
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
@@ -226,13 +233,17 @@ class triggers():
             daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
+                command = ['./mucca', '--status', self.env]
+                if self.query is not None:
+                    command = ['./mucca', '--status', self.env,
+                               '--only', self.query[1]]
                 pop = Popen(
-                    ['./mucca', '--help', self.env],
+                    command,
                     cwd=self.path,
                     stdout=log)
             except Exception as e:
                 logging.log_error(
-                    "Error in help:{}".format(e),
+                    "Error in status:{}".format(e),
                     os.path.abspath(__file__),
                     sys._getframe().f_lineno
                 )

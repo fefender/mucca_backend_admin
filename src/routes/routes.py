@@ -39,7 +39,7 @@ class router():
         self.routes = {
             "auth": ['authorization', 'authentication', 'logout'],
             "actions": ['read', 'create', 'update', 'delete'],
-            "triggers": ['list', 'stop', 'run', 'build', 'help', 'logs']
+            "triggers": ['list', 'stop', 'run', 'build', 'status', 'logs']
             }
 
     def rout(self):
@@ -70,7 +70,7 @@ class router():
                         sys._getframe().f_lineno
                     )
                     new_appmanager = appmanager(self.request)
-                    func = getattr(new_appmanager, self.request.getAction())
+                    func = getattr(new_appmanager, self.request.getUri())
                     return func()
                 else:
                     return response.respond(401, None)

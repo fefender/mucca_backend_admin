@@ -104,6 +104,11 @@ class request():
         """getMethod."""
         path = self.uri.split('/')
         if len(path) > 4:
+            print("** in request**")
+            print(path[4])
+            if "=" in path[4]:
+                print(" equal in query")
+                return self.getValues(path[4])
             return path[4]
         else:
             return None
@@ -112,6 +117,14 @@ class request():
         """getMethod."""
         self.uri = uri
         return self.uri
+
+    def getValues(self, query):
+        """Get values in query."""
+        arr = query.split('=')
+        name = arr[0]
+        values = arr[1]
+        print(name, values)
+        return name, values
 
     def getName(self):
         """getMethod."""
