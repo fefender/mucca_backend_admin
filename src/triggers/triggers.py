@@ -78,6 +78,8 @@ class triggers():
         m = day.month
         d = day.day
         fname = "/" + str(y) + str(m) + str(d) + "_" + pid + ".log"
+        if self.command == "status":
+            return self.triggStatus(fname)
         func = getattr(self, self.command)
         ws_port = self.__getWssPort()
         t2 = threading.Thread(
@@ -220,6 +222,26 @@ class triggers():
                 t1.start()
             log.close()
 
+    def triggStatus(self, fname):
+        """Trigg status command."""
+        que = queue.Queue()
+        t2 = threading.Thread(
+            name='status command',
+            target=self.status(fname, que),
+            daemon=False)
+        t2.start()
+        t2.join()
+        while not que.empty():
+            ext = que.get()
+            # print(ext)
+            # print("before open")
+            # with open(self.wrlogs_path + fname) as log:
+            #     print("after open")
+            #     txt = log.readlines()
+            #     print(txt)
+            # return response.respond(200, None)
+        return response.respond(400, None)
+
     def status(self, fname, que):
         """Status."""
         logging.log_info(
@@ -227,10 +249,6 @@ class triggers():
             os.path.abspath(__file__),
             sys._getframe().f_lineno
             )
-        t1 = threading.Thread(
-            name='websocket server',
-            target=self.startWss,
-            daemon=True)
         with open(self.wrlogs_path + fname, "w") as log:
             try:
                 command = ['./mucca', '--status', self.env]
@@ -240,7 +258,7 @@ class triggers():
                 pop = Popen(
                     command,
                     cwd=self.path,
-                    stdout=log)
+                    stdout=PIPE)
             except Exception as e:
                 logging.log_error(
                     "Error in status:{}".format(e),
@@ -248,9 +266,9 @@ class triggers():
                     sys._getframe().f_lineno
                 )
                 return None
-            if pop.poll() is None:
-                que.put("polling")
-                t1.start()
+            out = pop.stdout
+            while pop.poll() is None:
+                que.put(out)
             log.close()
 
     def logs(self):
