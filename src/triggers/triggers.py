@@ -23,7 +23,7 @@ import time
 import datetime
 import queue
 import json
-# import subprocess
+import re
 from subprocess import Popen, PIPE
 from vendor.mucca_logging.mucca_logging import logging
 # from src.triggers.wsserver import wsserver
@@ -77,7 +77,11 @@ class triggers():
         y = day.year
         m = day.month
         d = day.day
-        fname = "/" + str(y) + str(m) + str(d) + "_" + pid + ".log"
+        hh = day.hour
+        mm = day.minute
+        ss = day.second
+        fdate = str(y) + str(m) + str(d) + "_" + str(hh) + str(mm) + str(ss)
+        fname = "/" + fdate + "_" + pid + ".log"
         if self.command == "status":
             return self.triggStatus(fname)
         func = getattr(self, self.command)
@@ -231,16 +235,59 @@ class triggers():
             daemon=False)
         t2.start()
         t2.join()
-        while not que.empty():
+        if not que.empty():
             ext = que.get()
             # print(ext)
-            # print("before open")
+            print("before open")
+            self.getStatusResponse(fname)
             # with open(self.wrlogs_path + fname) as log:
             #     print("after open")
             #     txt = log.readlines()
             #     print(txt)
             # return response.respond(200, None)
         return response.respond(400, None)
+
+    def getStatusResponse(self, fname):
+        """Get status response."""
+        with open(self.wrlogs_path + fname) as log:
+            print("after open")
+            txt = log.read()
+            print(txt)
+            pattern = r'ENV(.*)STATUS'
+            repl = "::"
+            subb = re.sub(pattern, repl, txt)
+            pro = re.findall(r'\n(.*)\n', subb)
+            print(pro)
+            # sub = re.sub('\n', ' ', subb)
+            # print(sub)
+            # spl = sub.split("::")
+            # print(type(spl))
+            # print(" type and len")
+            # print(len(spl))
+            # print("list is")
+            # print(spl)
+            # for n in range(len(spl)):
+            #     print("!!!")
+            #     group = spl[n]
+            #     print(group)
+            #     line = group.split('   ')
+            #     for l in range(len(line)):
+            #         print("???")
+            #         print(line[l])
+                # string = array[n]
+                # start = "\x1b" + "[" + "1m"
+                # end = "\x1b" + "[" + "0m"
+                # find = string.split((start))
+                # find = re.search(r'\\x1b\[1m[.*?]\\x1b\[0m', string)
+                # print("find")
+                # print(find)
+                # if find[0] == "- ":
+                #     last = find[1].split(end)
+                #     print("last")
+                #     print(last)
+        if self.query is not None:
+            regex = "nel caso sia gruppo o ms"
+        regex = "nel caso sia status dell'intera app"
 
     def status(self, fname, que):
         """Status."""
@@ -258,7 +305,7 @@ class triggers():
                 pop = Popen(
                     command,
                     cwd=self.path,
-                    stdout=PIPE)
+                    stdout=PIPE, text=True)
             except Exception as e:
                 logging.log_error(
                     "Error in status:{}".format(e),
@@ -266,8 +313,10 @@ class triggers():
                     sys._getframe().f_lineno
                 )
                 return None
-            out = pop.stdout
             while pop.poll() is None:
+                out, err = pop.communicate()
+                log.write(out)
+                # print(out)
                 que.put(out)
             log.close()
 
