@@ -226,69 +226,6 @@ class triggers():
                 t1.start()
             log.close()
 
-    def triggStatus(self, fname):
-        """Trigg status command."""
-        que = queue.Queue()
-        t2 = threading.Thread(
-            name='status command',
-            target=self.status(fname, que),
-            daemon=False)
-        t2.start()
-        t2.join()
-        if not que.empty():
-            ext = que.get()
-            # print(ext)
-            print("before open")
-            self.getStatusResponse(fname)
-            # with open(self.wrlogs_path + fname) as log:
-            #     print("after open")
-            #     txt = log.readlines()
-            #     print(txt)
-            # return response.respond(200, None)
-        return response.respond(400, None)
-
-    def getStatusResponse(self, fname):
-        """Get status response."""
-        with open(self.wrlogs_path + fname) as log:
-            print("after open")
-            txt = log.read()
-            print(txt)
-            pattern = r'ENV(.*)STATUS'
-            repl = "::"
-            subb = re.sub(pattern, repl, txt)
-            pro = re.findall(r'\n(.*)\n', subb)
-            print(pro)
-            # sub = re.sub('\n', ' ', subb)
-            # print(sub)
-            # spl = sub.split("::")
-            # print(type(spl))
-            # print(" type and len")
-            # print(len(spl))
-            # print("list is")
-            # print(spl)
-            # for n in range(len(spl)):
-            #     print("!!!")
-            #     group = spl[n]
-            #     print(group)
-            #     line = group.split('   ')
-            #     for l in range(len(line)):
-            #         print("???")
-            #         print(line[l])
-                # string = array[n]
-                # start = "\x1b" + "[" + "1m"
-                # end = "\x1b" + "[" + "0m"
-                # find = string.split((start))
-                # find = re.search(r'\\x1b\[1m[.*?]\\x1b\[0m', string)
-                # print("find")
-                # print(find)
-                # if find[0] == "- ":
-                #     last = find[1].split(end)
-                #     print("last")
-                #     print(last)
-        if self.query is not None:
-            regex = "nel caso sia gruppo o ms"
-        regex = "nel caso sia status dell'intera app"
-
     def status(self, fname, que):
         """Status."""
         logging.log_info(
@@ -319,6 +256,46 @@ class triggers():
                 # print(out)
                 que.put(out)
             log.close()
+
+    def triggStatus(self, fname):
+        """Trigg status command."""
+        que = queue.Queue()
+        t2 = threading.Thread(
+            name='status command',
+            target=self.status(fname, que),
+            daemon=False)
+        t2.start()
+        t2.join()
+        if not que.empty():
+            with open(self.wrlogs_path + fname) as log:
+                print("after open")
+                txt = log.read()
+                res = self.__getStatusResponse(txt)
+            return response.respond(200, res)
+        return response.respond(400, None)
+
+    def __getStatusResponse(self, stingOut):
+        """Get status response."""
+        lines = re.split(r'\n', stingOut)
+        while '' in lines:
+            lines.remove('')
+        lines[:] = [x for x in lines if not x.startswith('ENV')]
+        count = 0
+        dictStatus = dict()
+        for line in lines:
+            row = re.split(r'\s{2,}|\n', line)
+            dictStatus.update({row[1]: []})
+        for line in lines:
+            row = re.split(r'\s{2,}|\n', line)
+            dictStatus[row[1]].append(
+                {
+                    "env": row[0],
+                    "name": row[2],
+                    "container_name": row[3],
+                    "status": row[4]
+                }
+            )
+        return json.dumps(dictStatus)
 
     def logs(self):
         """Logs."""
