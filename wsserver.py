@@ -37,6 +37,7 @@ class wsServer():
         self.port =  int(sys.argv[1])
         self.host = os.getenv('WSS_HOST')
         self.port_list = [8081, 8082, 8083]
+        self.done = None
 
     # def health_check(self, path, request_headers):
     #     print(path)
@@ -74,13 +75,22 @@ class wsServer():
     async def handler(self, websocket, path):
         """Websocket handler."""
         data = await websocket.recv()
+        self.done = None
         path = self.getPath(data)
         if path is not None:
-            for line in open(path):
-                time.sleep(0.8)
-                await websocket.send(line)
-                if "Done." not in line:
-                    time.sleep(0.5)
+            time.sleep(1.5)
+            while self.done is None:
+                for line in open(path):
+                    time.sleep(0.8)
+                    if "[OK]" not in line:
+                        time.sleep(0.8)
+                    if "wait..." in line:
+                        time.sleep(2)
+                    # if line.endswith("wait..."):
+                    #     line = "bla"
+                    await websocket.send(line)
+                    if "DONE!" in line:
+                        self.done = "done"
 
 
     def getPath(self, rec):
